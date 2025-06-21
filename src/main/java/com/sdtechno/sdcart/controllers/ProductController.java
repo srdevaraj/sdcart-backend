@@ -13,7 +13,7 @@ import com.sdtechno.sdcart.models.Product;
 import com.sdtechno.sdcart.services.ProductService;
 
 @RestController
-@RequestMapping("/products")
+@RequestMapping("/api/products")
 @CrossOrigin(origins = "*")  // Adjust CORS as needed
 public class ProductController {
 
