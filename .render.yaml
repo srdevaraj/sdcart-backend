@@ -2,8 +2,8 @@ services:
   - type: web
     name: sdcart-backend
     runtime: java
-    buildCommand: mvn clean package -DskipTests
-    startCommand: java -jar target/*.jar
+    buildCommand: ./mvnw clean package -DskipTests
+    startCommand: java -jar target/sdcart-0.0.1-SNAPSHOT.jar
     envVars:
       - key: SPRING_DATASOURCE_URL
         value: jdbc:mysql://gondola.proxy.rlwy.net:41081/railway
@@ -11,3 +11,5 @@ services:
         value: root
       - key: SPRING_DATASOURCE_PASSWORD
         value: RnbBqNvCWfTjytXxkydZyBWUrINrCTwc
+      - key: JAVA_HOME
+        value: /usr/lib/jvm/java-11-openjdk-amd64
