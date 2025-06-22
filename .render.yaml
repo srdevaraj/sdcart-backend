@@ -1,3 +1,3 @@
 build:
   env:
-    JAVA_HOME: "/opt/render/project/java"
+    JAVA_HOME: "/opt/render/project/.render_home/java"
