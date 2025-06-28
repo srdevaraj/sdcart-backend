@@ -9,6 +9,18 @@ import org.springframework.web.multipart.MultipartFile;
 
 import com.sdtechno.sdcart.models.Product;
 import com.sdtechno.sdcart.repositories.ProductRepository;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.stream.Collectors;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.stream.Collectors;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.stream.Collectors;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 @Service
 public class ProductService {
@@ -39,8 +51,12 @@ public class ProductService {
         }
         return productrepository.save(product);
     }
+    public List<Product> searchProducts(String keyword) {
+        return productrepository.findByNameContainingIgnoreCase(keyword);
+    }
 
     public void deleteById(Long id) {
         productrepository.deleteById(id);
     }
+
 }
