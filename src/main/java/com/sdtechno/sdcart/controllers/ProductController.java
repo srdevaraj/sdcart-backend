@@ -1,18 +1,25 @@
 package com.sdtechno.sdcart.controllers;
 
-import java.util.*;
-import java.util.stream.Collectors;
+import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestPart;
+import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
+import com.cloudinary.Cloudinary;
+import com.cloudinary.utils.ObjectUtils;
 import com.sdtechno.sdcart.exceptions.ResourceNotFoundException;
 import com.sdtechno.sdcart.models.Product;
 import com.sdtechno.sdcart.services.ProductService;
+import java.io.IOException;
 
-import dto.SearchRequest;
 
 @RestController
 @RequestMapping("/products")
@@ -22,53 +29,26 @@ public class ProductController {
     @Autowired
     private ProductService productservice;
 
-    @GetMapping("/light")
-    public List<Map<String, Object>> getProductsLight() {
-        List<Product> products = productservice.getAllProducts();
-        return products.stream().map(p -> {
-            Map<String, Object> map = new HashMap<>();
-            map.put("id", p.getId());
-            map.put("name", p.getName());
-            map.put("price", p.getPrice());
-            return map;
-        }).collect(Collectors.toList());
-    }
+    @Autowired
+    private Cloudinary cloudinary;
 
-    @GetMapping("/product/{id}/image")
-    public ResponseEntity<String> getProductImage(@PathVariable Long id) {
-        Product product = productservice.getProductById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Product not found with id: " + id));
-
-        if (product.getImage() == null) {
-            return ResponseEntity.noContent().build();
-        }
-
-        String base64Image = Base64.getEncoder().encodeToString(product.getImage());
-        return ResponseEntity.ok(base64Image);
-    }
-
-    @GetMapping("/product/{id}")
-    public Product getProductById(@PathVariable Long id) {
-        return productservice.getProductById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Product not found with id: " + id));
-    }
-
-    @PostMapping("/search")
-    public ResponseEntity<List<Product>> searchProducts(@RequestBody SearchRequest request) {
-        List<Product> results = productservice.searchProducts(request.getKeyword());
-        return ResponseEntity.ok(results);
-    }
-
+    // Create new product with image (Cloudinary)
     @PostMapping(consumes = {"multipart/form-data"})
     public Product createProduct(@ModelAttribute Product product,
-                                 @RequestPart(value = "imageFile", required = false) MultipartFile imageFile) throws Exception {
-        return productservice.saveProductWithImage(product, imageFile);
+                                 @RequestPart(value = "imageFile", required = false) MultipartFile imageFile) throws IOException {
+        if (imageFile != null && !imageFile.isEmpty()) {
+            Map uploadResult = cloudinary.uploader().upload(imageFile.getBytes(), ObjectUtils.emptyMap());
+            String imageUrl = (String) uploadResult.get("secure_url");
+            product.setImageUrl(imageUrl);
+        }
+        return productservice.saveProduct(product);
     }
 
+    // Update product with optional image (Cloudinary)
     @PutMapping(value = "/product/{id}", consumes = {"multipart/form-data"})
     public Product updateProductById(@PathVariable Long id,
                                      @ModelAttribute Product product,
-                                     @RequestPart(value = "imageFile", required = false) MultipartFile imageFile) throws Exception {
+                                     @RequestPart(value = "imageFile", required = false) MultipartFile imageFile) throws IOException {
         Product existingProduct = productservice.getProductById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Product not found with id: " + id));
 
@@ -81,17 +61,14 @@ public class ProductController {
         if (product.getNumOfReviews() != 0) existingProduct.setNumOfReviews(product.getNumOfReviews());
 
         if (imageFile != null && !imageFile.isEmpty()) {
-            existingProduct.setImage(imageFile.getBytes());
+            Map uploadResult = cloudinary.uploader().upload(imageFile.getBytes(), ObjectUtils.emptyMap());
+            String imageUrl = (String) uploadResult.get("secure_url");
+            existingProduct.setImageUrl(imageUrl);
         }
 
         return productservice.saveProduct(existingProduct);
     }
 
-    @DeleteMapping("/product/deleteById/{id}")
-    public ResponseEntity<?> deleteProductById(@PathVariable Long id) {
-        productservice.getProductById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Product not found with id: " + id));
-        productservice.deleteById(id);
-        return ResponseEntity.ok().build();
-    }
+    // ❌ REMOVE the old local upload method
+    // private String saveImageToUploads(...) { ... }
 }

@@ -4,4 +4,5 @@ D:\web eclipse\sdcart\src\main\java\com\sdtechno\sdcart\repositories\ProductRepo
 D:\web eclipse\sdcart\src\main\java\com\sdtechno\sdcart\SdcartApplication.java
 D:\web eclipse\sdcart\src\main\java\com\sdtechno\sdcart\models\Product.java
 D:\web eclipse\sdcart\src\main\java\com\sdtechno\sdcart\controllers\ProductController.java
+D:\web eclipse\sdcart\src\main\java\dto\SearchRequest.java
 D:\web eclipse\sdcart\src\main\java\com\sdtechno\sdcart\DataSeeder.java

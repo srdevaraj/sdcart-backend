@@ -1,18 +1,11 @@
 package com.sdtechno.sdcart.models;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.Lob;
-import jakarta.persistence.Transient;
-
-import java.util.Base64;
+import jakarta.persistence.*;
 
 @Entity
 public class Product {
     @Id
-    @GeneratedValue(strategy=GenerationType.IDENTITY)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     private String name;
@@ -23,8 +16,8 @@ public class Product {
     private int stock;
     private int numOfReviews;
 
-    @Lob
-    private byte[] image;
+    // ✅ Store only image URL (file saved to uploads/)
+    private String imageUrl;
 
     public Product() {
         super();
@@ -41,7 +34,7 @@ public class Product {
         this.numOfReviews = numOfReviews;
     }
 
-    // Getters and setters
+    // Getters and Setters
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
 
@@ -66,14 +59,6 @@ public class Product {
     public int getNumOfReviews() { return numOfReviews; }
     public void setNumOfReviews(int numOfReviews) { this.numOfReviews = numOfReviews; }
 
-    public byte[] getImage() { return image; }
-    public void setImage(byte[] image) { this.image = image; }
-
-    @Transient
-    public String getImageBase64() {
-        if (this.image != null) {
-            return Base64.getEncoder().encodeToString(this.image);
-        }
-        return null;
-    }
+    public String getImageUrl() { return imageUrl; }
+    public void setImageUrl(String imageUrl) { this.imageUrl = imageUrl; }
 }

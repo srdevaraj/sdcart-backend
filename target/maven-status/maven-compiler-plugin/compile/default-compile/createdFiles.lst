@@ -1,5 +1,6 @@
 com\sdtechno\sdcart\DataSeeder.class
 com\sdtechno\sdcart\models\Product.class
+dto\SearchRequest.class
 com\sdtechno\sdcart\exceptions\ResourceNotFoundException.class
 com\sdtechno\sdcart\repositories\ProductRepository.class
 com\sdtechno\sdcart\controllers\ProductController.class

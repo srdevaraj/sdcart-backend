@@ -46,6 +46,11 @@
             <artifactId>spring-boot-starter-test</artifactId>
             <scope>test</scope>
         </dependency>
+        <dependency>
+    		<groupId>com.cloudinary</groupId>
+    		<artifactId>cloudinary-http44</artifactId> <!-- use http44 for compatibility -->
+    		<version>1.32.2</version>
+		</dependency>
     </dependencies>
 
     <build>

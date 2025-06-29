@@ -1,62 +1,60 @@
 package com.sdtechno.sdcart.services;
 
-import java.util.List;
-import java.util.Optional;
-
+import com.cloudinary.Cloudinary;
+import com.cloudinary.utils.ObjectUtils;
+import com.sdtechno.sdcart.models.Product;
+import com.sdtechno.sdcart.repositories.ProductRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
-import com.sdtechno.sdcart.models.Product;
-import com.sdtechno.sdcart.repositories.ProductRepository;
-import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.stream.Collectors;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.stream.Collectors;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.stream.Collectors;
+import java.util.Optional;
 
 @Service
 public class ProductService {
 
     @Autowired
-    private ProductRepository productrepository;
+    private ProductRepository productRepository;
+
+    @Autowired
+    private Cloudinary cloudinary;
 
     public List<Product> getAllProducts() {
-        return productrepository.findAll();
+        return productRepository.findAll();
     }
 
     public Optional<Product> getProductById(Long id) {
-        return productrepository.findById(id);
+        return productRepository.findById(id);
     }
+
     public List<Product> getProductsGreaterThanPrice(double price) {
-        return productrepository.findByPriceGreaterThan(price);
+        return productRepository.findByPriceGreaterThan(price);
     }
+
     public List<Product> getProductsLessThanPrice(double price) {
-        return productrepository.findByPriceLessThan(price);
+        return productRepository.findByPriceLessThan(price);
     }
+
     public Product saveProduct(Product product) {
-        return productrepository.save(product);
+        return productRepository.save(product);
     }
 
     public Product saveProductWithImage(Product product, MultipartFile imageFile) throws Exception {
         if (imageFile != null && !imageFile.isEmpty()) {
-            product.setImage(imageFile.getBytes());
+            Map uploadResult = cloudinary.uploader().upload(imageFile.getBytes(), ObjectUtils.emptyMap());
+            String imageUrl = (String) uploadResult.get("secure_url");
+            product.setImageUrl(imageUrl);
         }
-        return productrepository.save(product);
+        return productRepository.save(product);
     }
+
     public List<Product> searchProducts(String keyword) {
-        return productrepository.findByNameContainingIgnoreCase(keyword);
+        return productRepository.findByNameContainingIgnoreCase(keyword);
     }
 
     public void deleteById(Long id) {
-        productrepository.deleteById(id);
+        productRepository.deleteById(id);
     }
-
 }
