@@ -1,16 +1,11 @@
 package com.sdtechno.sdcart.controllers;
 
-import java.util.Map;
+import java.io.IOException;
+import java.util.*;
+import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.CrossOrigin;
-import org.springframework.web.bind.annotation.ModelAttribute;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestPart;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.cloudinary.Cloudinary;
@@ -18,8 +13,6 @@ import com.cloudinary.utils.ObjectUtils;
 import com.sdtechno.sdcart.exceptions.ResourceNotFoundException;
 import com.sdtechno.sdcart.models.Product;
 import com.sdtechno.sdcart.services.ProductService;
-import java.io.IOException;
-
 
 @RestController
 @RequestMapping("/products")
@@ -32,7 +25,7 @@ public class ProductController {
     @Autowired
     private Cloudinary cloudinary;
 
-    // Create new product with image (Cloudinary)
+    // ✅ Create new product with image (Cloudinary)
     @PostMapping(consumes = {"multipart/form-data"})
     public Product createProduct(@ModelAttribute Product product,
                                  @RequestPart(value = "imageFile", required = false) MultipartFile imageFile) throws IOException {
@@ -44,7 +37,7 @@ public class ProductController {
         return productservice.saveProduct(product);
     }
 
-    // Update product with optional image (Cloudinary)
+    // ✅ Update product with optional image (Cloudinary)
     @PutMapping(value = "/product/{id}", consumes = {"multipart/form-data"})
     public Product updateProductById(@PathVariable Long id,
                                      @ModelAttribute Product product,
@@ -69,6 +62,15 @@ public class ProductController {
         return productservice.saveProduct(existingProduct);
     }
 
-    // ❌ REMOVE the old local upload method
-    // private String saveImageToUploads(...) { ... }
+    // ✅ GET endpoint for /products/light
+    @GetMapping("/light")
+    public List<Map<String, Object>> getLightProducts() {
+        return productservice.getAllProducts().stream().map(product -> {
+            Map<String, Object> map = new HashMap<>();
+            map.put("id", product.getId());
+            map.put("name", product.getName());
+            map.put("price", product.getPrice());
+            return map;
+        }).collect(Collectors.toList());
+    }
 }
