@@ -2,6 +2,7 @@ package com.sdtechno.sdcart.controllers;
 
 import com.sdtechno.sdcart.models.User;
 import com.sdtechno.sdcart.repositories.UserRepository;
+import com.sdtechno.sdcart.security.JwtUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -11,7 +12,7 @@ import java.util.*;
 
 @RestController
 @RequestMapping("/api/auth")
-@CrossOrigin(origins = "*") // Allow React Native requests
+@CrossOrigin(origins = "*")
 public class AuthController {
 
     @Autowired
@@ -19,6 +20,9 @@ public class AuthController {
 
     @Autowired
     private PasswordEncoder passwordEncoder;
+
+    @Autowired
+    private JwtUtil jwtUtil;
 
     @PostMapping("/register")
     public ResponseEntity<?> register(@RequestBody User user) {
@@ -39,7 +43,7 @@ public class AuthController {
             return ResponseEntity.status(401).body("Invalid email or password");
         }
 
-        String token = UUID.randomUUID().toString(); // You can replace with real JWT
+        String token = jwtUtil.generateToken(user.get().getEmail());
         return ResponseEntity.ok(Map.of("token", token));
     }
 }
