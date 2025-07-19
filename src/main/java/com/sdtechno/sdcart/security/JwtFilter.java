@@ -25,18 +25,18 @@ public class JwtFilter implements Filter {
 
         String path = req.getRequestURI();
 
-        // Allow open endpoints
+        // ✅ Allow open (public) endpoints
         if (
-            path.startsWith("/api/auth") ||                     // for login/register
-            path.equals("/products/light") ||                   // public product list
-            path.matches("^/products/\\d+$")                    // product by id
+            path.startsWith("/api/auth") ||                       // public login/register
+            path.equals("/products/light") ||                     // public list
+            path.startsWith("/products/product/")                 // public single product
         ) {
             chain.doFilter(request, response);
             return;
         }
 
+        // ✅ Check Authorization header
         String header = req.getHeader("Authorization");
-
         if (header == null || !header.startsWith("Bearer ")) {
             res.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
             res.getWriter().write("Missing or invalid Authorization header");
@@ -44,7 +44,6 @@ public class JwtFilter implements Filter {
         }
 
         String token = header.substring(7);
-
         if (!jwtUtil.validateToken(token)) {
             res.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
             res.getWriter().write("Invalid or expired token");

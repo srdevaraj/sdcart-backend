@@ -13,13 +13,12 @@ import java.util.stream.Collectors;
 @Component
 public class JwtUtil {
 
-    // Use a fixed, long-enough secret key (use env in production)
+    // 🔒 In production, move this to environment variables
     private static final String SECRET = "my-super-secret-key-that-should-be-long-enough";
     private final Key SECRET_KEY = Keys.hmacShaKeyFor(SECRET.getBytes());
 
     private final long EXPIRATION_TIME = 86400000; // 1 day
 
-    // Generate token with roles
     public String generateToken(UserDetails userDetails) {
         Map<String, Object> claims = new HashMap<>();
         List<String> roles = userDetails.getAuthorities()

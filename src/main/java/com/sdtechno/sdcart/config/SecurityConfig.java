@@ -24,10 +24,10 @@ public class SecurityConfig {
             .csrf(csrf -> csrf.disable())
             .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .authorizeHttpRequests(auth -> auth
-                .requestMatchers("/api/auth/**").permitAll()                // ✅ Public: login/register
-                .requestMatchers("/products/light").permitAll()             // ✅ Public: list products
-                .requestMatchers("/products/product/**").permitAll()        // ✅ Public: get by ID
-                .anyRequest().authenticated()                               // 🔒 Others need JWT
+                .requestMatchers("/api/auth/**").permitAll()                   // ✅ Public: login/register
+                .requestMatchers("/products/light").permitAll()                // ✅ Public: list products
+                .requestMatchers("/products/product/**").permitAll()           // ✅ FIXED: product by ID public
+                .anyRequest().authenticated()                                  // 🔒 All others
             )
             .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
 
