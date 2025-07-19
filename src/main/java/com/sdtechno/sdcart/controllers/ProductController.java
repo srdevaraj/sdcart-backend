@@ -5,6 +5,8 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.*;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -25,8 +27,9 @@ public class ProductController {
     @Autowired
     private Cloudinary cloudinary;
 
-    // ✅ Create new product with image (Cloudinary)
+    // ✅ 1. Create product (Admin only)
     @PostMapping(consumes = {"multipart/form-data"})
+    @PreAuthorize("hasRole('ADMIN')")
     public Product createProduct(@ModelAttribute Product product,
                                  @RequestPart(value = "imageFile", required = false) MultipartFile imageFile) throws IOException {
         if (imageFile != null && !imageFile.isEmpty()) {
@@ -37,8 +40,9 @@ public class ProductController {
         return productservice.saveProduct(product);
     }
 
-    // ✅ Update product with optional image (Cloudinary)
-    @PutMapping(value = "/product/{id}", consumes = {"multipart/form-data"})
+    // ✅ 2. Update product (Admin only)
+    @PutMapping(value = "/update/{id}", consumes = {"multipart/form-data"})
+    @PreAuthorize("hasRole('ADMIN')")
     public Product updateProductById(@PathVariable Long id,
                                      @ModelAttribute Product product,
                                      @RequestPart(value = "imageFile", required = false) MultipartFile imageFile) throws IOException {
@@ -62,7 +66,7 @@ public class ProductController {
         return productservice.saveProduct(existingProduct);
     }
 
-    // ✅ GET endpoint for /products/light
+    // ✅ 3. Get all products (light data)
     @GetMapping("/light")
     public List<Map<String, Object>> getLightProducts() {
         return productservice.getAllProducts().stream().map(product -> {
@@ -72,5 +76,29 @@ public class ProductController {
             map.put("price", product.getPrice());
             return map;
         }).collect(Collectors.toList());
+    }
+
+    // ✅ 4. Get full product details by ID (user or admin)
+    @GetMapping("/product/{id}")
+    public ResponseEntity<Product> getProductById(@PathVariable Long id) {
+        Optional<Product> product = productservice.getProductById(id);
+        return product.map(ResponseEntity::ok)
+                      .orElseGet(() -> ResponseEntity.notFound().build());
+    }
+
+    // ✅ 5. Delete product (Admin only)
+    @DeleteMapping("/delete/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<Void> deleteProduct(@PathVariable Long id) {
+        if (productservice.deleteProduct(id)) {
+            return ResponseEntity.noContent().build();
+        }
+        throw new ResourceNotFoundException("Product not found with id: " + id);
+    }
+
+    // ✅ 6. Test endpoint
+    @GetMapping("/test")
+    public String testEndpoint() {
+        return "GET /products/test is working";
     }
 }

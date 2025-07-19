@@ -70,6 +70,12 @@
             <version>6.2.1</version>
         </dependency>
 
+        <!-- ✅ Spring Security starter (for @PreAuthorize, filters, etc.) -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-security</artifactId>
+        </dependency>
+
         <!-- ✅ JSON Web Token (JJWT) - Modern and Full Support -->
         <dependency>
             <groupId>io.jsonwebtoken</groupId>

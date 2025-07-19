@@ -2,6 +2,7 @@ package com.sdtechno.sdcart.config;
 
 import com.cloudinary.Cloudinary;
 import com.cloudinary.utils.ObjectUtils;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -10,12 +11,21 @@ import java.util.Map;
 @Configuration
 public class CloudinaryConfig {
 
+    @Value("${cloudinary.cloud_name}")
+    private String cloudName;
+
+    @Value("${cloudinary.api_key}")
+    private String apiKey;
+
+    @Value("${cloudinary.api_secret}")
+    private String apiSecret;
+
     @Bean
     public Cloudinary cloudinary() {
         Map<String, String> config = ObjectUtils.asMap(
-            "cloud_name", "your_cloud_name",      // Replace with your Cloudinary cloud name
-            "api_key", "your_api_key",            // Replace with your API key
-            "api_secret", "your_api_secret"       // Replace with your API secret
+            "cloud_name", cloudName,
+            "api_key", apiKey,
+            "api_secret", apiSecret
         );
         return new Cloudinary(config);
     }
