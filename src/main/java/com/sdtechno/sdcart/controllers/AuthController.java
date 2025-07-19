@@ -1,6 +1,7 @@
 package com.sdtechno.sdcart.controllers;
 
 import com.sdtechno.sdcart.models.User;
+import com.sdtechno.sdcart.payload.RegisterRequest;
 import com.sdtechno.sdcart.repositories.UserRepository;
 import com.sdtechno.sdcart.security.JwtUtil;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -25,12 +26,28 @@ public class AuthController {
     private JwtUtil jwtUtil;
 
     @PostMapping("/register")
-    public ResponseEntity<?> register(@RequestBody User user) {
-        if (userRepository.findByEmail(user.getEmail()).isPresent()) {
+    public ResponseEntity<?> register(@RequestBody RegisterRequest request) {
+        System.out.println("Incoming register request:");
+        System.out.println("Email: " + request.getEmail());
+        System.out.println("First Name: " + request.getFirstName());
+        System.out.println("Last Name: " + request.getLastName());
+        System.out.println("DOB: " + request.getDob());
+        System.out.println("Mobile: " + request.getMobile());
+        System.out.println("Alt Mobile: " + request.getAltMobile());
+
+        if (userRepository.findByEmail(request.getEmail()).isPresent()) {
             return ResponseEntity.badRequest().body("User already exists");
         }
 
-        user.setPassword(passwordEncoder.encode(user.getPassword()));
+        User user = new User();
+        user.setEmail(request.getEmail());
+        user.setPassword(passwordEncoder.encode(request.getPassword()));
+        user.setFirstName(request.getFirstName());
+        user.setLastName(request.getLastName());
+        user.setDob(request.getDob());
+        user.setMobile(request.getMobile());
+        user.setAltMobile(request.getAltMobile());
+
         userRepository.save(user);
         return ResponseEntity.ok("Registered successfully");
     }
