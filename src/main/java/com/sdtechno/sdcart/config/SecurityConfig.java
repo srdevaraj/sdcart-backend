@@ -22,11 +22,12 @@ public class SecurityConfig {
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
             .csrf(csrf -> csrf.disable())
-            .sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+            .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .authorizeHttpRequests(auth -> auth
-                .requestMatchers("/api/auth/**").permitAll() // Allow register/login
-                .requestMatchers("/products/**").permitAll() // ✅ Allow all product GET requests
-                .anyRequest().authenticated() // Other endpoints require JWT
+                .requestMatchers("/api/auth/**").permitAll()                // ✅ Public: login/register
+                .requestMatchers("/products/light").permitAll()             // ✅ Public: list products
+                .requestMatchers("/products/product/**").permitAll()        // ✅ Public: get by ID
+                .anyRequest().authenticated()                               // 🔒 Others need JWT
             )
             .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
 
