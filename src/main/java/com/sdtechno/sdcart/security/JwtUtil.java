@@ -13,10 +13,13 @@ import java.util.stream.Collectors;
 @Component
 public class JwtUtil {
 
-    private final Key SECRET_KEY = Keys.secretKeyFor(SignatureAlgorithm.HS256);
-    private final long EXPIRATION_TIME = 86400000;
+    // Use a fixed, long-enough secret key (use env in production)
+    private static final String SECRET = "my-super-secret-key-that-should-be-long-enough";
+    private final Key SECRET_KEY = Keys.hmacShaKeyFor(SECRET.getBytes());
 
-    // ✅ Add this method to generate token with roles
+    private final long EXPIRATION_TIME = 86400000; // 1 day
+
+    // Generate token with roles
     public String generateToken(UserDetails userDetails) {
         Map<String, Object> claims = new HashMap<>();
         List<String> roles = userDetails.getAuthorities()
@@ -35,14 +38,13 @@ public class JwtUtil {
                 .compact();
     }
 
-    // Use this to extract roles if needed
+    public String extractEmail(String token) {
+        return getClaims(token).getBody().getSubject();
+    }
+
     public List<String> extractRoles(String token) {
         Claims claims = getClaims(token).getBody();
         return claims.get("roles", List.class);
-    }
-
-    public String extractEmail(String token) {
-        return getClaims(token).getBody().getSubject();
     }
 
     public boolean validateToken(String token) {
