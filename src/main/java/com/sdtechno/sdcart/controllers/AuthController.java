@@ -6,6 +6,8 @@ import com.sdtechno.sdcart.repositories.UserRepository;
 import com.sdtechno.sdcart.security.JwtUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
@@ -25,16 +27,11 @@ public class AuthController {
     @Autowired
     private JwtUtil jwtUtil;
 
+    @Autowired
+    private UserDetailsService userDetailsService;
+
     @PostMapping("/register")
     public ResponseEntity<?> register(@RequestBody RegisterRequest request) {
-        System.out.println("Incoming register request:");
-        System.out.println("Email: " + request.getEmail());
-        System.out.println("First Name: " + request.getFirstName());
-        System.out.println("Last Name: " + request.getLastName());
-        System.out.println("DOB: " + request.getDob());
-        System.out.println("Mobile: " + request.getMobile());
-        System.out.println("Alt Mobile: " + request.getAltMobile());
-
         if (userRepository.findByEmail(request.getEmail()).isPresent()) {
             return ResponseEntity.badRequest().body("User already exists");
         }
@@ -49,7 +46,12 @@ public class AuthController {
         user.setAltMobile(request.getAltMobile());
 
         userRepository.save(user);
-        return ResponseEntity.ok("Registered successfully");
+
+        // Generate token using UserDetails (includes roles)
+        UserDetails userDetails = userDetailsService.loadUserByUsername(user.getEmail());
+        String token = jwtUtil.generateToken(userDetails);
+
+        return ResponseEntity.ok(Map.of("token", token));
     }
 
     @PostMapping("/login")
@@ -60,7 +62,10 @@ public class AuthController {
             return ResponseEntity.status(401).body("Invalid email or password");
         }
 
-        String token = jwtUtil.generateToken(user.get().getEmail());
+        // Generate token using UserDetails (includes roles)
+        UserDetails userDetails = userDetailsService.loadUserByUsername(user.get().getEmail());
+        String token = jwtUtil.generateToken(userDetails);
+
         return ResponseEntity.ok(Map.of("token", token));
     }
 }

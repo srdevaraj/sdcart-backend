@@ -12,7 +12,7 @@ import org.springframework.security.web.*;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 @Configuration
-@EnableMethodSecurity // Enables @PreAuthorize, etc.
+@EnableMethodSecurity
 public class SecurityConfig {
 
     @Autowired
@@ -24,8 +24,9 @@ public class SecurityConfig {
             .csrf(csrf -> csrf.disable())
             .sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .authorizeHttpRequests(auth -> auth
-                .requestMatchers("/api/auth/**").permitAll() // Allow auth endpoints
-                .anyRequest().authenticated() // All others need JWT
+                .requestMatchers("/api/auth/**").permitAll() // Allow register/login
+                .requestMatchers("/products/**").permitAll() // ✅ Allow all product GET requests
+                .anyRequest().authenticated() // Other endpoints require JWT
             )
             .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
 
