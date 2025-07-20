@@ -80,7 +80,6 @@ public class ProductController {
 
     // ✅ 4. Get full product details by ID (USER or ADMIN)
     @GetMapping("/product/{id}")
-    @PreAuthorize("hasAnyRole('USER', 'ADMIN')") // <-- Added this line
     public ResponseEntity<Product> getProductById(@PathVariable Long id) {
         Optional<Product> product = productservice.getProductById(id);
         return product.map(ResponseEntity::ok)
