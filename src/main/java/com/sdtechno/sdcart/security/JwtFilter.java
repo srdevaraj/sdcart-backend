@@ -27,9 +27,9 @@ public class JwtFilter implements Filter {
 
         // ✅ Allow open (public) endpoints
         if (
-            path.startsWith("/api/auth") ||                       // public login/register
-            path.equals("/products/light") ||                     // public list
-            path.startsWith("/products/product/")                 // public single product
+            path.startsWith("/api/auth") ||                   // login/register
+            path.equals("/products/light") ||                 // all products public
+            path.startsWith("/products/product/")             // single product public
         ) {
             chain.doFilter(request, response);
             return;
