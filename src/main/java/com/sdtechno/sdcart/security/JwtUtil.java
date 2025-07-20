@@ -1,3 +1,4 @@
+// JwtUtil.java
 package com.sdtechno.sdcart.security;
 
 import io.jsonwebtoken.*;
@@ -13,13 +14,11 @@ import java.util.Map;
 @Component
 public class JwtUtil {
 
-    // 🔒 In production, move this to environment variables
     private static final String SECRET = "my-super-secret-key-that-should-be-long-enough";
     private final Key SECRET_KEY = Keys.hmacShaKeyFor(SECRET.getBytes());
 
     private final long EXPIRATION_TIME = 86400000; // 1 day
 
-    // ✅ Generate token with role (e.g., ROLE_ADMIN)
     public String generateToken(UserDetails userDetails, String role) {
         Map<String, Object> claims = new HashMap<>();
         claims.put("role", role);
@@ -33,15 +32,12 @@ public class JwtUtil {
                 .compact();
     }
 
-    // ✅ Extract email (username)
-    public String extractEmail(String token) {
+    public String extractUsername(String token) {
         return getClaims(token).getBody().getSubject();
     }
 
-    // ✅ Extract role from claims
     public String extractRole(String token) {
-        Claims claims = getClaims(token).getBody();
-        return claims.get("role", String.class);
+        return getClaims(token).getBody().get("role", String.class);
     }
 
     public boolean validateToken(String token) {

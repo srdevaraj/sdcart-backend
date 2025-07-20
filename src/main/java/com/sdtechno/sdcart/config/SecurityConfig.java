@@ -12,7 +12,7 @@ import org.springframework.security.web.*;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 @Configuration
-@EnableMethodSecurity
+@EnableMethodSecurity(prePostEnabled = true) // ✅ Important for @PreAuthorize
 public class SecurityConfig {
 
     @Autowired
@@ -24,10 +24,10 @@ public class SecurityConfig {
             .csrf(csrf -> csrf.disable())
             .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .authorizeHttpRequests(auth -> auth
-                .requestMatchers("/api/auth/**").permitAll()                   // ✅ Public: login/register
-                .requestMatchers("/products/light").permitAll()                // ✅ Public: list products
-                .requestMatchers("/products/product/**").permitAll()           // ✅ FIXED: product by ID public
-                .anyRequest().authenticated()                                  // 🔒 All others
+                .requestMatchers("/api/auth/**").permitAll()
+                .requestMatchers("/products/light").permitAll()
+                .requestMatchers("/products/product/**").permitAll()
+                .anyRequest().authenticated()
             )
             .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
 

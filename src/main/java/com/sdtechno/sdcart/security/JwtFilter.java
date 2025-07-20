@@ -1,19 +1,27 @@
 package com.sdtechno.sdcart.security;
 
+import com.sdtechno.sdcart.services.CustomUserDetailsService;
 import jakarta.servlet.*;
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.*;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
+import java.util.List;
 
 @Component
 public class JwtFilter implements Filter {
 
     private final JwtUtil jwtUtil;
+    private final CustomUserDetailsService userDetailsService;
 
-    public JwtFilter(JwtUtil jwtUtil) {
+    @Autowired
+    public JwtFilter(JwtUtil jwtUtil, CustomUserDetailsService userDetailsService) {
         this.jwtUtil = jwtUtil;
+        this.userDetailsService = userDetailsService;
     }
 
     @Override
@@ -25,17 +33,15 @@ public class JwtFilter implements Filter {
 
         String path = req.getRequestURI();
 
-        // ✅ Allow open (public) endpoints
         if (
-            path.startsWith("/api/auth") ||                   // login/register
-            path.equals("/products/light") ||                 // all products public
-            path.startsWith("/products/product/")             // single product public
+            path.startsWith("/api/auth") ||
+            path.equals("/products/light") ||
+            path.startsWith("/products/product/")
         ) {
             chain.doFilter(request, response);
             return;
         }
 
-        // ✅ Check Authorization header
         String header = req.getHeader("Authorization");
         if (header == null || !header.startsWith("Bearer ")) {
             res.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
@@ -48,6 +54,17 @@ public class JwtFilter implements Filter {
             res.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
             res.getWriter().write("Invalid or expired token");
             return;
+        }
+
+        String username = jwtUtil.extractUsername(token);
+        String role = jwtUtil.extractRole(token); // Make sure you have this method
+
+        System.out.println("Extracted role from JWT: " + role); // ✅ Debug print
+
+        if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
+            List<SimpleGrantedAuthority> authorities = List.of(new SimpleGrantedAuthority(role));
+            UsernamePasswordAuthenticationToken auth = new UsernamePasswordAuthenticationToken(username, null, authorities);
+            SecurityContextHolder.getContext().setAuthentication(auth);
         }
 
         chain.doFilter(request, response);
