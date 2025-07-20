@@ -45,11 +45,14 @@ public class AuthController {
         user.setMobile(request.getMobile());
         user.setAltMobile(request.getAltMobile());
 
+        // 🟢 Default role as ROLE_USER — customize if needed
+        user.setRole("ROLE_USER");
+
         userRepository.save(user);
 
-        // Generate token using UserDetails (includes roles)
+        // Generate token using UserDetails (includes role)
         UserDetails userDetails = userDetailsService.loadUserByUsername(user.getEmail());
-        String token = jwtUtil.generateToken(userDetails);
+        String token = jwtUtil.generateToken(userDetails, user.getRole());
 
         return ResponseEntity.ok(Map.of("token", token));
     }
@@ -62,9 +65,8 @@ public class AuthController {
             return ResponseEntity.status(401).body("Invalid email or password");
         }
 
-        // Generate token using UserDetails (includes roles)
         UserDetails userDetails = userDetailsService.loadUserByUsername(user.get().getEmail());
-        String token = jwtUtil.generateToken(userDetails);
+        String token = jwtUtil.generateToken(userDetails, user.get().getRole());
 
         return ResponseEntity.ok(Map.of("token", token));
     }

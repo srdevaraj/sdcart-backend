@@ -2,13 +2,13 @@ package com.sdtechno.sdcart.security;
 
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.security.Keys;
-import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
 
 import java.security.Key;
-import java.util.*;
-import java.util.stream.Collectors;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
 
 @Component
 public class JwtUtil {
@@ -19,14 +19,10 @@ public class JwtUtil {
 
     private final long EXPIRATION_TIME = 86400000; // 1 day
 
-    public String generateToken(UserDetails userDetails) {
+    // ✅ Generate token with role (e.g., ROLE_ADMIN)
+    public String generateToken(UserDetails userDetails, String role) {
         Map<String, Object> claims = new HashMap<>();
-        List<String> roles = userDetails.getAuthorities()
-                .stream()
-                .map(GrantedAuthority::getAuthority)
-                .collect(Collectors.toList());
-
-        claims.put("roles", roles);
+        claims.put("role", role);
 
         return Jwts.builder()
                 .setClaims(claims)
@@ -37,13 +33,15 @@ public class JwtUtil {
                 .compact();
     }
 
+    // ✅ Extract email (username)
     public String extractEmail(String token) {
         return getClaims(token).getBody().getSubject();
     }
 
-    public List<String> extractRoles(String token) {
+    // ✅ Extract role from claims
+    public String extractRole(String token) {
         Claims claims = getClaims(token).getBody();
-        return claims.get("roles", List.class);
+        return claims.get("role", String.class);
     }
 
     public boolean validateToken(String token) {

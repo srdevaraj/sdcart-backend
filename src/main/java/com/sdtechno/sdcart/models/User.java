@@ -24,6 +24,9 @@ public class User {
     @Column(name = "dob")
     private String dob;
 
+    @Column(name = "role")
+    private String role;
+    
     @Column(name = "mobile")
     private String mobile;
 
@@ -49,6 +52,9 @@ public class User {
 
     public String getDob() { return dob; }
     public void setDob(String dob) { this.dob = dob; }
+    
+    public String getRole() { return role; }
+    public void setRole(String role) { this.role = role; }
 
     public String getMobile() { return mobile; }
     public void setMobile(String mobile) { this.mobile = mobile; }
