@@ -56,14 +56,12 @@ public class JwtFilter implements Filter {
             return;
         }
 
-        String username = jwtUtil.extractUsername(token);
-        String role = jwtUtil.extractRole(token); // Make sure you have this method
+        String email = jwtUtil.extractEmail(token);
+        String role = jwtUtil.extractRole(token);
 
-        System.out.println("Extracted role from JWT: " + role); // ✅ Debug print
-
-        if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
+        if (email != null && SecurityContextHolder.getContext().getAuthentication() == null) {
             List<SimpleGrantedAuthority> authorities = List.of(new SimpleGrantedAuthority(role));
-            UsernamePasswordAuthenticationToken auth = new UsernamePasswordAuthenticationToken(username, null, authorities);
+            UsernamePasswordAuthenticationToken auth = new UsernamePasswordAuthenticationToken(email, null, authorities);
             SecurityContextHolder.getContext().setAuthentication(auth);
         }
 

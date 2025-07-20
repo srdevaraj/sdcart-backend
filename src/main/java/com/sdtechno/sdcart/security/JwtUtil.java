@@ -1,4 +1,3 @@
-// JwtUtil.java
 package com.sdtechno.sdcart.security;
 
 import io.jsonwebtoken.*;
@@ -25,14 +24,14 @@ public class JwtUtil {
 
         return Jwts.builder()
                 .setClaims(claims)
-                .setSubject(userDetails.getUsername())
+                .setSubject(userDetails.getUsername()) // email stored as subject
                 .setIssuedAt(new Date())
                 .setExpiration(new Date(System.currentTimeMillis() + EXPIRATION_TIME))
                 .signWith(SECRET_KEY)
                 .compact();
     }
 
-    public String extractUsername(String token) {
+    public String extractEmail(String token) {
         return getClaims(token).getBody().getSubject();
     }
 
