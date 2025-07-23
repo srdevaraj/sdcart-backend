@@ -6,8 +6,6 @@ import com.sdtechno.sdcart.repositories.UserRepository;
 import com.sdtechno.sdcart.security.JwtUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
@@ -27,9 +25,6 @@ public class AuthController {
     @Autowired
     private JwtUtil jwtUtil;
 
-    @Autowired
-    private UserDetailsService userDetailsService;
-
     @PostMapping("/register")
     public ResponseEntity<?> register(@RequestBody RegisterRequest request) {
         if (userRepository.findByEmail(request.getEmail()).isPresent()) {
@@ -44,29 +39,42 @@ public class AuthController {
         user.setDob(request.getDob());
         user.setMobile(request.getMobile());
         user.setAltMobile(request.getAltMobile());
-
-        // 🟢 Default role as ROLE_USER — customize if needed
         user.setRole("ROLE_USER");
 
         userRepository.save(user);
 
-        // Generate token using UserDetails (includes role)
-        UserDetails userDetails = userDetailsService.loadUserByUsername(user.getEmail());
-        String token = jwtUtil.generateToken(userDetails, user.getRole());
+        // ➕ Add user info to token
+        Map<String, Object> claims = new HashMap<>();
+        claims.put("firstName", user.getFirstName());
+        claims.put("lastName", user.getLastName());
+        claims.put("role", user.getRole());
+
+        String token = jwtUtil.generateToken(claims, user.getEmail()); // email as sub
 
         return ResponseEntity.ok(Map.of("token", token));
     }
 
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody User loginUser) {
-        Optional<User> user = userRepository.findByEmail(loginUser.getEmail());
+        Optional<User> userOptional = userRepository.findByEmail(loginUser.getEmail());
 
-        if (user.isEmpty() || !passwordEncoder.matches(loginUser.getPassword(), user.get().getPassword())) {
+        if (userOptional.isEmpty()) {
             return ResponseEntity.status(401).body("Invalid email or password");
         }
 
-        UserDetails userDetails = userDetailsService.loadUserByUsername(user.get().getEmail());
-        String token = jwtUtil.generateToken(userDetails, user.get().getRole());
+        User user = userOptional.get();
+
+        if (!passwordEncoder.matches(loginUser.getPassword(), user.getPassword())) {
+            return ResponseEntity.status(401).body("Invalid email or password");
+        }
+
+        // ➕ Add user info to token
+        Map<String, Object> claims = new HashMap<>();
+        claims.put("firstName", user.getFirstName());
+        claims.put("lastName", user.getLastName());
+        claims.put("role", user.getRole());
+
+        String token = jwtUtil.generateToken(claims, user.getEmail());
 
         return ResponseEntity.ok(Map.of("token", token));
     }
