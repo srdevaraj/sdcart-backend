@@ -6,7 +6,6 @@ import org.springframework.stereotype.Component;
 
 import java.security.Key;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.Map;
 
 @Component
@@ -27,8 +26,13 @@ public class JwtUtil {
                 .compact();
     }
 
-    public String extractEmail(String token) {
+    public String extractUsername(String token) {
         return getClaims(token).getBody().getSubject();
+    }
+
+    // ✅ Optional alias for clarity
+    public String extractEmail(String token) {
+        return extractUsername(token);
     }
 
     public String extractRole(String token) {

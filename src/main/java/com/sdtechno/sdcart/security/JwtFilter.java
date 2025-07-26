@@ -33,6 +33,7 @@ public class JwtFilter implements Filter {
 
         String path = req.getRequestURI();
 
+        // Publicly accessible endpoints
         if (
             path.startsWith("/api/auth") ||
             path.equals("/products/light") ||
@@ -42,27 +43,30 @@ public class JwtFilter implements Filter {
             return;
         }
 
-        String header = req.getHeader("Authorization");
-        if (header == null || !header.startsWith("Bearer ")) {
+        String authHeader = req.getHeader("Authorization");
+
+        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
             res.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
             res.getWriter().write("Missing or invalid Authorization header");
             return;
         }
 
-        String token = header.substring(7);
+        String token = authHeader.substring(7);
+
         if (!jwtUtil.validateToken(token)) {
             res.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
             res.getWriter().write("Invalid or expired token");
             return;
         }
 
-        String email = jwtUtil.extractEmail(token);
+        String email = jwtUtil.extractUsername(token); // ✅ Changed to extractUsername() for clarity
         String role = jwtUtil.extractRole(token);
 
         if (email != null && SecurityContextHolder.getContext().getAuthentication() == null) {
             List<SimpleGrantedAuthority> authorities = List.of(new SimpleGrantedAuthority(role));
-            UsernamePasswordAuthenticationToken auth = new UsernamePasswordAuthenticationToken(email, null, authorities);
-            SecurityContextHolder.getContext().setAuthentication(auth);
+            UsernamePasswordAuthenticationToken authenticationToken =
+                    new UsernamePasswordAuthenticationToken(email, null, authorities);
+            SecurityContextHolder.getContext().setAuthentication(authenticationToken);
         }
 
         chain.doFilter(request, response);
