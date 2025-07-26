@@ -54,7 +54,7 @@ public class CartService {
     public CartItem addToCart(String token, CartItem item) {
         User user = getUserFromToken(token);
 
-        // 🔁 Fetch product details and fill cart item info
+        // ✅ Fetch product details and populate cart item
         Product product = productRepo.findById(Long.valueOf(item.getProductId()))
                 .orElseThrow(() -> new RuntimeException("Product not found"));
 
