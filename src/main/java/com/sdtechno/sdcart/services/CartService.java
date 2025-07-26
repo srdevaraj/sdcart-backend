@@ -1,8 +1,10 @@
 package com.sdtechno.sdcart.services;
 
 import com.sdtechno.sdcart.models.CartItem;
+import com.sdtechno.sdcart.models.Product;
 import com.sdtechno.sdcart.models.User;
 import com.sdtechno.sdcart.repositories.CartItemRepository;
+import com.sdtechno.sdcart.repositories.ProductRepository;
 import com.sdtechno.sdcart.repositories.UserRepository;
 import com.sdtechno.sdcart.security.JwtUtil;
 
@@ -21,6 +23,9 @@ public class CartService {
     private UserRepository userRepo;
 
     @Autowired
+    private ProductRepository productRepo;
+
+    @Autowired
     private JwtUtil jwtUtil;
 
     public User getUserFromToken(String token) {
@@ -33,7 +38,7 @@ public class CartService {
         }
 
         try {
-            String email = jwtUtil.extractUsername(token); // ✅ Fixed method call
+            String email = jwtUtil.extractUsername(token);
             return userRepo.findByEmail(email)
                     .orElseThrow(() -> new RuntimeException("User not found with email: " + email));
         } catch (Exception e) {
@@ -48,7 +53,16 @@ public class CartService {
 
     public CartItem addToCart(String token, CartItem item) {
         User user = getUserFromToken(token);
+
+        // 🔁 Fetch product details and fill cart item info
+        Product product = productRepo.findById(Long.valueOf(item.getProductId()))
+                .orElseThrow(() -> new RuntimeException("Product not found"));
+
         item.setUser(user);
+        item.setName(product.getName());
+        item.setImageUrl(product.getImageUrl());
+        item.setPrice(product.getPrice());
+
         return cartItemRepo.save(item);
     }
 
