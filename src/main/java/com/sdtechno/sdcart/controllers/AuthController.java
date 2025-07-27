@@ -25,6 +25,7 @@ public class AuthController {
     @Autowired
     private JwtUtil jwtUtil;
 
+    // ✅ Register new user
     @PostMapping("/register")
     public ResponseEntity<?> register(@RequestBody RegisterRequest request) {
         if (userRepository.findByEmail(request.getEmail()).isPresent()) {
@@ -43,17 +44,22 @@ public class AuthController {
 
         userRepository.save(user);
 
-        // ➕ Add user info to token
         Map<String, Object> claims = new HashMap<>();
         claims.put("firstName", user.getFirstName());
         claims.put("lastName", user.getLastName());
         claims.put("role", user.getRole());
 
-        String token = jwtUtil.generateToken(claims, user.getEmail()); // email as sub
+        String token = jwtUtil.generateToken(claims, user.getEmail());
 
-        return ResponseEntity.ok(Map.of("token", token));
+        // ✅ Send token + user (optional)
+        Map<String, Object> response = new HashMap<>();
+        response.put("token", token);
+        response.put("user", user);
+
+        return ResponseEntity.ok(response);
     }
 
+    // ✅ Login existing user
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody User loginUser) {
         Optional<User> userOptional = userRepository.findByEmail(loginUser.getEmail());
@@ -68,7 +74,6 @@ public class AuthController {
             return ResponseEntity.status(401).body("Invalid email or password");
         }
 
-        // ➕ Add user info to token
         Map<String, Object> claims = new HashMap<>();
         claims.put("firstName", user.getFirstName());
         claims.put("lastName", user.getLastName());
@@ -76,6 +81,10 @@ public class AuthController {
 
         String token = jwtUtil.generateToken(claims, user.getEmail());
 
-        return ResponseEntity.ok(Map.of("token", token));
+        Map<String, Object> response = new HashMap<>();
+        response.put("token", token);
+        response.put("user", user);
+
+        return ResponseEntity.ok(response);
     }
 }
