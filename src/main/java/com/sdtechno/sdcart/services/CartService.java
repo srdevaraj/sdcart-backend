@@ -54,9 +54,10 @@ public class CartService {
     public CartItem addToCart(String token, CartItem item) {
         User user = getUserFromToken(token);
 
-        // ✅ Fetch product details and populate cart item
-        Product product = productRepo.findById(Long.valueOf(item.getProductId()))
-                .orElseThrow(() -> new RuntimeException("Product not found"));
+        // ✅ Convert productId if needed
+        Long productId = item.getProductId();
+        Product product = productRepo.findById(productId)
+                .orElseThrow(() -> new RuntimeException("Product not found with ID: " + productId));
 
         item.setUser(user);
         item.setName(product.getName());
@@ -69,10 +70,12 @@ public class CartService {
     public void removeFromCart(Long id, String token) {
         User user = getUserFromToken(token);
         CartItem item = cartItemRepo.findById(id)
-                .orElseThrow(() -> new RuntimeException("Item not found"));
+                .orElseThrow(() -> new RuntimeException("Item not found with ID: " + id));
+
         if (!item.getUser().getId().equals(user.getId())) {
-            throw new RuntimeException("Unauthorized access to cart item");
+            throw new RuntimeException("Unauthorized to delete this cart item");
         }
+
         cartItemRepo.delete(item);
     }
 

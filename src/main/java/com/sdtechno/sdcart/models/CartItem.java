@@ -10,7 +10,8 @@ public class CartItem {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    private String productId;
+    // ✅ Changed from String to Long to match Product ID type
+    private Long productId;
     private String name;
     private String imageUrl;
     private Double price;
@@ -21,7 +22,8 @@ public class CartItem {
 
     public CartItem() {}
 
-    public CartItem(String productId, String name, String imageUrl, Double price, User user) {
+    // ✅ Updated constructor
+    public CartItem(Long productId, String name, String imageUrl, Double price, User user) {
         this.productId = productId;
         this.name = name;
         this.imageUrl = imageUrl;
@@ -29,21 +31,49 @@ public class CartItem {
         this.user = user;
     }
 
-    // Getters and Setters
-    public Long getId() { return id; }
+    // ✅ Getters and Setters
 
-    public String getProductId() { return productId; }
-    public void setProductId(String productId) { this.productId = productId; }
+    public Long getId() {
+        return id;
+    }
 
-    public String getName() { return name; }
-    public void setName(String name) { this.name = name; }
+    public Long getProductId() {
+        return productId;
+    }
 
-    public String getImageUrl() { return imageUrl; }
-    public void setImageUrl(String imageUrl) { this.imageUrl = imageUrl; }
+    public void setProductId(Long productId) {
+        this.productId = productId;
+    }
 
-    public Double getPrice() { return price; }
-    public void setPrice(Double price) { this.price = price; }
+    public String getName() {
+        return name;
+    }
 
-    public User getUser() { return user; }
-    public void setUser(User user) { this.user = user; }
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public String getImageUrl() {
+        return imageUrl;
+    }
+
+    public void setImageUrl(String imageUrl) {
+        this.imageUrl = imageUrl;
+    }
+
+    public Double getPrice() {
+        return price;
+    }
+
+    public void setPrice(Double price) {
+        this.price = price;
+    }
+
+    public User getUser() {
+        return user;
+    }
+
+    public void setUser(User user) {
+        this.user = user;
+    }
 }
