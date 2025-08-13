@@ -32,15 +32,26 @@ public class ProductController {
      */
     @PostMapping(consumes = {"multipart/form-data"})
     @PreAuthorize("hasRole('ADMIN')")
-    public Product createProduct(@ModelAttribute Product product,
-                                 @RequestPart(value = "imageFile", required = false) MultipartFile imageFile) throws IOException {
-        if (imageFile != null && !imageFile.isEmpty()) {
-            Map<String, Object> uploadResult = cloudinary.uploader().upload(
-                    imageFile.getBytes(), ObjectUtils.emptyMap());
-            String imageUrl = (String) uploadResult.get("secure_url");
-            product.setImageUrl(imageUrl);
+    public ResponseEntity<Product> createProduct(
+            @ModelAttribute Product product,
+            @RequestPart(value = "imageFile", required = false) MultipartFile imageFile) {
+
+        try {
+            if (imageFile != null && !imageFile.isEmpty()) {
+                Map<String, Object> uploadResult = cloudinary.uploader().upload(
+                        imageFile.getBytes(),
+                        ObjectUtils.asMap("folder", "products")
+                );
+                String imageUrl = (String) uploadResult.get("secure_url");
+                product.setImageUrl(imageUrl);
+            }
+
+            Product savedProduct = productService.saveProduct(product);
+            return ResponseEntity.status(HttpStatus.CREATED).body(savedProduct);
+
+        } catch (IOException e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
-        return productService.saveProduct(product);
     }
 
     /**
@@ -48,30 +59,40 @@ public class ProductController {
      */
     @PutMapping(value = "/update/{id}", consumes = {"multipart/form-data"})
     @PreAuthorize("hasRole('ADMIN')")
-    public Product updateProductById(@PathVariable Long id,
-                                     @ModelAttribute Product product,
-                                     @RequestPart(value = "imageFile", required = false) MultipartFile imageFile) throws IOException {
+    public ResponseEntity<Product> updateProductById(
+            @PathVariable Long id,
+            @ModelAttribute Product product,
+            @RequestPart(value = "imageFile", required = false) MultipartFile imageFile) {
 
-        Product existingProduct = productService.getProductById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Product not found with id: " + id));
+        try {
+            Product existingProduct = productService.getProductById(id)
+                    .orElseThrow(() -> new ResourceNotFoundException("Product not found with id: " + id));
 
-        // Update only non-null fields
-        if (product.getName() != null) existingProduct.setName(product.getName());
-        if (product.getDescription() != null) existingProduct.setDescription(product.getDescription());
-        if (product.getPrice() > 0) existingProduct.setPrice(product.getPrice());
-        if (product.getRatings() > 0) existingProduct.setRatings(product.getRatings());
-        if (product.getSeller() != null) existingProduct.setSeller(product.getSeller());
-        if (product.getStock() > 0) existingProduct.setStock(product.getStock());
-        if (product.getNumOfReviews() > 0) existingProduct.setNumOfReviews(product.getNumOfReviews());
+            // Update only if provided
+            if (product.getName() != null) existingProduct.setName(product.getName());
+            if (product.getDescription() != null) existingProduct.setDescription(product.getDescription());
+            if (product.getPrice() > 0) existingProduct.setPrice(product.getPrice());
+            if (product.getRatings() > 0) existingProduct.setRatings(product.getRatings());
+            if (product.getSeller() != null) existingProduct.setSeller(product.getSeller());
+            if (product.getStock() > 0) existingProduct.setStock(product.getStock());
+            if (product.getNumOfReviews() > 0) existingProduct.setNumOfReviews(product.getNumOfReviews());
 
-        if (imageFile != null && !imageFile.isEmpty()) {
-            Map<String, Object> uploadResult = cloudinary.uploader().upload(
-                    imageFile.getBytes(), ObjectUtils.emptyMap());
-            String imageUrl = (String) uploadResult.get("secure_url");
-            existingProduct.setImageUrl(imageUrl);
+            // Handle image upload
+            if (imageFile != null && !imageFile.isEmpty()) {
+                Map<String, Object> uploadResult = cloudinary.uploader().upload(
+                        imageFile.getBytes(),
+                        ObjectUtils.asMap("folder", "products")
+                );
+                String imageUrl = (String) uploadResult.get("secure_url");
+                existingProduct.setImageUrl(imageUrl);
+            }
+
+            Product updatedProduct = productService.saveProduct(existingProduct);
+            return ResponseEntity.ok(updatedProduct);
+
+        } catch (IOException e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
-
-        return productService.saveProduct(existingProduct);
     }
 
     /**
@@ -89,7 +110,6 @@ public class ProductController {
                 })
                 .collect(Collectors.toList());
     }
-
 
     /**
      * ✅ Get full product details by ID
