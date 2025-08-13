@@ -28,17 +28,34 @@ public class ProductController {
     private Cloudinary cloudinary;
 
     /**
-     * ✅ Create product (Admin only)
+     * ✅ Create product (Admin only) with image upload
      */
     @PostMapping(consumes = {"multipart/form-data"})
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Product> createProduct(
-            @ModelAttribute Product product,
+            @RequestParam("name") String name,
+            @RequestParam("price") double price,
+            @RequestParam("description") String description,
+            @RequestParam("ratings") double ratings,
+            @RequestParam("seller") String seller,
+            @RequestParam("stock") int stock,
+            @RequestParam("numOfReviews") int numOfReviews,
             @RequestPart(value = "imageFile", required = false) MultipartFile imageFile) {
 
         try {
+            Product product = new Product();
+            product.setName(name);
+            product.setPrice(price);
+            product.setDescription(description);
+            product.setRatings(ratings);
+            product.setSeller(seller);
+            product.setStock(stock);
+            product.setNumOfReviews(numOfReviews);
+
+            // Handle image upload
             if (imageFile != null && !imageFile.isEmpty()) {
-                Map<String, Object> uploadResult = cloudinary.uploader().upload(
+                @SuppressWarnings("unchecked")
+				Map<String, Object> uploadResult = cloudinary.uploader().upload(
                         imageFile.getBytes(),
                         ObjectUtils.asMap("folder", "products")
                 );
@@ -55,13 +72,19 @@ public class ProductController {
     }
 
     /**
-     * ✅ Update product (Admin only)
+     * ✅ Update product (Admin only) with image upload
      */
     @PutMapping(value = "/update/{id}", consumes = {"multipart/form-data"})
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Product> updateProductById(
             @PathVariable Long id,
-            @ModelAttribute Product product,
+            @RequestParam(value = "name", required = false) String name,
+            @RequestParam(value = "price", required = false) Double price,
+            @RequestParam(value = "description", required = false) String description,
+            @RequestParam(value = "ratings", required = false) Double ratings,
+            @RequestParam(value = "seller", required = false) String seller,
+            @RequestParam(value = "stock", required = false) Integer stock,
+            @RequestParam(value = "numOfReviews", required = false) Integer numOfReviews,
             @RequestPart(value = "imageFile", required = false) MultipartFile imageFile) {
 
         try {
@@ -69,17 +92,18 @@ public class ProductController {
                     .orElseThrow(() -> new ResourceNotFoundException("Product not found with id: " + id));
 
             // Update only if provided
-            if (product.getName() != null) existingProduct.setName(product.getName());
-            if (product.getDescription() != null) existingProduct.setDescription(product.getDescription());
-            if (product.getPrice() > 0) existingProduct.setPrice(product.getPrice());
-            if (product.getRatings() > 0) existingProduct.setRatings(product.getRatings());
-            if (product.getSeller() != null) existingProduct.setSeller(product.getSeller());
-            if (product.getStock() > 0) existingProduct.setStock(product.getStock());
-            if (product.getNumOfReviews() > 0) existingProduct.setNumOfReviews(product.getNumOfReviews());
+            if (name != null) existingProduct.setName(name);
+            if (description != null) existingProduct.setDescription(description);
+            if (price != null && price > 0) existingProduct.setPrice(price);
+            if (ratings != null && ratings > 0) existingProduct.setRatings(ratings);
+            if (seller != null) existingProduct.setSeller(seller);
+            if (stock != null && stock > 0) existingProduct.setStock(stock);
+            if (numOfReviews != null && numOfReviews > 0) existingProduct.setNumOfReviews(numOfReviews);
 
             // Handle image upload
             if (imageFile != null && !imageFile.isEmpty()) {
-                Map<String, Object> uploadResult = cloudinary.uploader().upload(
+                @SuppressWarnings("unchecked")
+				Map<String, Object> uploadResult = cloudinary.uploader().upload(
                         imageFile.getBytes(),
                         ObjectUtils.asMap("folder", "products")
                 );
