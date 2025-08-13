@@ -22,81 +22,100 @@ import com.sdtechno.sdcart.services.ProductService;
 public class ProductController {
 
     @Autowired
-    private ProductService productservice;
+    private ProductService productService;
 
     @Autowired
     private Cloudinary cloudinary;
 
-    // ✅ 1. Create product (Admin only)
+    /**
+     * ✅ Create product (Admin only)
+     */
     @PostMapping(consumes = {"multipart/form-data"})
     @PreAuthorize("hasRole('ADMIN')")
     public Product createProduct(@ModelAttribute Product product,
                                  @RequestPart(value = "imageFile", required = false) MultipartFile imageFile) throws IOException {
         if (imageFile != null && !imageFile.isEmpty()) {
-            Map uploadResult = cloudinary.uploader().upload(imageFile.getBytes(), ObjectUtils.emptyMap());
+            Map<String, Object> uploadResult = cloudinary.uploader().upload(
+                    imageFile.getBytes(), ObjectUtils.emptyMap());
             String imageUrl = (String) uploadResult.get("secure_url");
             product.setImageUrl(imageUrl);
         }
-        return productservice.saveProduct(product);
+        return productService.saveProduct(product);
     }
 
-    // ✅ 2. Update product (Admin only)
+    /**
+     * ✅ Update product (Admin only)
+     */
     @PutMapping(value = "/update/{id}", consumes = {"multipart/form-data"})
     @PreAuthorize("hasRole('ADMIN')")
     public Product updateProductById(@PathVariable Long id,
                                      @ModelAttribute Product product,
                                      @RequestPart(value = "imageFile", required = false) MultipartFile imageFile) throws IOException {
-        Product existingProduct = productservice.getProductById(id)
+
+        Product existingProduct = productService.getProductById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Product not found with id: " + id));
 
+        // Update only non-null fields
         if (product.getName() != null) existingProduct.setName(product.getName());
         if (product.getDescription() != null) existingProduct.setDescription(product.getDescription());
-        if (product.getPrice() != 0) existingProduct.setPrice(product.getPrice());
-        if (product.getRatings() != 0) existingProduct.setRatings(product.getRatings());
+        if (product.getPrice() > 0) existingProduct.setPrice(product.getPrice());
+        if (product.getRatings() > 0) existingProduct.setRatings(product.getRatings());
         if (product.getSeller() != null) existingProduct.setSeller(product.getSeller());
-        if (product.getStock() != 0) existingProduct.setStock(product.getStock());
-        if (product.getNumOfReviews() != 0) existingProduct.setNumOfReviews(product.getNumOfReviews());
+        if (product.getStock() > 0) existingProduct.setStock(product.getStock());
+        if (product.getNumOfReviews() > 0) existingProduct.setNumOfReviews(product.getNumOfReviews());
 
         if (imageFile != null && !imageFile.isEmpty()) {
-            Map uploadResult = cloudinary.uploader().upload(imageFile.getBytes(), ObjectUtils.emptyMap());
+            Map<String, Object> uploadResult = cloudinary.uploader().upload(
+                    imageFile.getBytes(), ObjectUtils.emptyMap());
             String imageUrl = (String) uploadResult.get("secure_url");
             existingProduct.setImageUrl(imageUrl);
         }
 
-        return productservice.saveProduct(existingProduct);
+        return productService.saveProduct(existingProduct);
     }
 
-    // ✅ 3. Get all products (light data)
+    /**
+     * ✅ Get all products (light data)
+     */
     @GetMapping("/light")
     public List<Map<String, Object>> getLightProducts() {
-        return productservice.getAllProducts().stream().map(product -> {
-            Map<String, Object> map = new HashMap<>();
-            map.put("id", product.getId());
-            map.put("name", product.getName());
-            map.put("price", product.getPrice());
-            return map;
-        }).collect(Collectors.toList());
+        return productService.getAllProducts().stream()
+                .map(product -> {
+                    Map<String, Object> map = new HashMap<>();
+                    map.put("id", product.getId());
+                    map.put("name", product.getName());
+                    map.put("price", product.getPrice());
+                    return map;
+                })
+                .collect(Collectors.toList());
     }
 
-    // ✅ 4. Get full product details by ID (USER or ADMIN)
+
+    /**
+     * ✅ Get full product details by ID
+     */
     @GetMapping("/product/{id}")
     public ResponseEntity<Product> getProductById(@PathVariable Long id) {
-        Optional<Product> product = productservice.getProductById(id);
-        return product.map(ResponseEntity::ok)
-                      .orElseGet(() -> ResponseEntity.notFound().build());
+        return productService.getProductById(id)
+                .map(ResponseEntity::ok)
+                .orElseThrow(() -> new ResourceNotFoundException("Product not found with id: " + id));
     }
 
-    // ✅ 5. Delete product (Admin only)
+    /**
+     * ✅ Delete product (Admin only)
+     */
     @DeleteMapping("/delete/{id}")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Void> deleteProduct(@PathVariable Long id) {
-        if (productservice.deleteProduct(id)) {
+        if (productService.deleteProduct(id)) {
             return ResponseEntity.noContent().build();
         }
         throw new ResourceNotFoundException("Product not found with id: " + id);
     }
 
-    // ✅ 6. Test endpoint
+    /**
+     * ✅ Test endpoint
+     */
     @GetMapping("/test")
     public String testEndpoint() {
         return "GET /products/test is working";
