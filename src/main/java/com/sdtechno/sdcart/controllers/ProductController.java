@@ -54,13 +54,11 @@ public class ProductController {
 
             // Handle image upload
             if (imageFile != null && !imageFile.isEmpty()) {
-                @SuppressWarnings("unchecked")
-				Map<String, Object> uploadResult = cloudinary.uploader().upload(
+                Map<String, Object> uploadResult = cloudinary.uploader().upload(
                         imageFile.getBytes(),
                         ObjectUtils.asMap("folder", "products")
                 );
-                String imageUrl = (String) uploadResult.get("secure_url");
-                product.setImageUrl(imageUrl);
+                product.setImageUrl(uploadResult.get("secure_url").toString());
             }
 
             Product savedProduct = productService.saveProduct(product);
@@ -72,7 +70,7 @@ public class ProductController {
     }
 
     /**
-     * ✅ Update product (Admin only) with image upload
+     * ✅ Update product (Admin only) with optional image upload
      */
     @PutMapping(value = "/update/{id}", consumes = {"multipart/form-data"})
     @PreAuthorize("hasRole('ADMIN')")
@@ -91,24 +89,21 @@ public class ProductController {
             Product existingProduct = productService.getProductById(id)
                     .orElseThrow(() -> new ResourceNotFoundException("Product not found with id: " + id));
 
-            // Update only if provided
             if (name != null) existingProduct.setName(name);
             if (description != null) existingProduct.setDescription(description);
             if (price != null && price > 0) existingProduct.setPrice(price);
             if (ratings != null && ratings > 0) existingProduct.setRatings(ratings);
             if (seller != null) existingProduct.setSeller(seller);
-            if (stock != null && stock > 0) existingProduct.setStock(stock);
-            if (numOfReviews != null && numOfReviews > 0) existingProduct.setNumOfReviews(numOfReviews);
+            if (stock != null && stock >= 0) existingProduct.setStock(stock);
+            if (numOfReviews != null && numOfReviews >= 0) existingProduct.setNumOfReviews(numOfReviews);
 
-            // Handle image upload
+            // Handle new image upload
             if (imageFile != null && !imageFile.isEmpty()) {
-                @SuppressWarnings("unchecked")
-				Map<String, Object> uploadResult = cloudinary.uploader().upload(
+                Map<String, Object> uploadResult = cloudinary.uploader().upload(
                         imageFile.getBytes(),
                         ObjectUtils.asMap("folder", "products")
                 );
-                String imageUrl = (String) uploadResult.get("secure_url");
-                existingProduct.setImageUrl(imageUrl);
+                existingProduct.setImageUrl(uploadResult.get("secure_url").toString());
             }
 
             Product updatedProduct = productService.saveProduct(existingProduct);
@@ -120,7 +115,7 @@ public class ProductController {
     }
 
     /**
-     * ✅ Get all products (light data)
+     * ✅ Get light-weight product list
      */
     @GetMapping("/light")
     public List<Map<String, Object>> getLightProducts() {
