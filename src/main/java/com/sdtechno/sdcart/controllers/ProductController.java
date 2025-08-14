@@ -125,10 +125,12 @@ public class ProductController {
                     map.put("id", product.getId());
                     map.put("name", product.getName());
                     map.put("price", product.getPrice());
+                    map.put("imageUrl", product.getImageUrl()); // ✅ Added Cloudinary image
                     return map;
                 })
                 .collect(Collectors.toList());
     }
+
 
     /**
      * ✅ Get full product details by ID
