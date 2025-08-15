@@ -4,6 +4,8 @@ import java.io.IOException;
 import java.util.*;
 import java.util.stream.Collectors;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.*;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -20,6 +22,8 @@ import com.sdtechno.sdcart.services.ProductService;
 @RequestMapping("/products")
 @CrossOrigin(origins = "*")
 public class ProductController {
+
+    private static final Logger logger = LoggerFactory.getLogger(ProductController.class);
 
     @Autowired
     private ProductService productService;
@@ -65,7 +69,8 @@ public class ProductController {
             return ResponseEntity.status(HttpStatus.CREATED).body(savedProduct);
 
         } catch (IOException e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+            logger.error("Error uploading image for product '{}': {}", name, e.getMessage(), e);
+            throw new RuntimeException("Image upload failed: " + e.getMessage(), e);
         }
     }
 
@@ -110,7 +115,8 @@ public class ProductController {
             return ResponseEntity.ok(updatedProduct);
 
         } catch (IOException e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+            logger.error("Error updating product with id '{}': {}", id, e.getMessage(), e);
+            throw new RuntimeException("Image upload failed during update: " + e.getMessage(), e);
         }
     }
 
@@ -125,12 +131,11 @@ public class ProductController {
                     map.put("id", product.getId());
                     map.put("name", product.getName());
                     map.put("price", product.getPrice());
-                    map.put("imageUrl", product.getImageUrl()); // ✅ Added Cloudinary image
+                    map.put("imageUrl", product.getImageUrl());
                     return map;
                 })
                 .collect(Collectors.toList());
     }
-
 
     /**
      * ✅ Get full product details by ID
