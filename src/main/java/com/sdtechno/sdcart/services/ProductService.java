@@ -15,4 +15,11 @@ public interface ProductService {
     Product saveProductWithImage(Product product, MultipartFile imageFile) throws Exception;
     List<Product> searchProducts(String keyword);
     boolean deleteProduct(Long id);
+
+    // ✅ New update method (optional usage)
+    Product updateProduct(Long id, Product updatedProduct, MultipartFile imageFile) throws Exception;
+
+    // ✅ Added to match controller endpoints
+    List<Product> getProductsByCategory(String category);
+    List<Product> getProductsByBrand(String brand);
 }

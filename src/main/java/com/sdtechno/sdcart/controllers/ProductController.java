@@ -7,6 +7,7 @@ import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.*;
 import org.springframework.http.*;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
@@ -44,6 +45,8 @@ public class ProductController {
             @RequestParam("seller") String seller,
             @RequestParam("stock") int stock,
             @RequestParam("numOfReviews") int numOfReviews,
+            @RequestParam(value = "category", required = false) String category,
+            @RequestParam(value = "brand", required = false) String brand,
             @RequestPart(value = "imageFile", required = false) MultipartFile imageFile) {
 
         try {
@@ -55,6 +58,8 @@ public class ProductController {
             product.setSeller(seller);
             product.setStock(stock);
             product.setNumOfReviews(numOfReviews);
+            product.setCategory(category);
+            product.setBrand(brand);
 
             // Handle image upload
             if (imageFile != null && !imageFile.isEmpty()) {
@@ -88,6 +93,8 @@ public class ProductController {
             @RequestParam(value = "seller", required = false) String seller,
             @RequestParam(value = "stock", required = false) Integer stock,
             @RequestParam(value = "numOfReviews", required = false) Integer numOfReviews,
+            @RequestParam(value = "category", required = false) String category,
+            @RequestParam(value = "brand", required = false) String brand,
             @RequestPart(value = "imageFile", required = false) MultipartFile imageFile) {
 
         try {
@@ -97,10 +104,12 @@ public class ProductController {
             if (name != null) existingProduct.setName(name);
             if (description != null) existingProduct.setDescription(description);
             if (price != null && price > 0) existingProduct.setPrice(price);
-            if (ratings != null && ratings > 0) existingProduct.setRatings(ratings);
+            if (ratings != null && ratings >= 0) existingProduct.setRatings(ratings);
             if (seller != null) existingProduct.setSeller(seller);
             if (stock != null && stock >= 0) existingProduct.setStock(stock);
             if (numOfReviews != null && numOfReviews >= 0) existingProduct.setNumOfReviews(numOfReviews);
+            if (category != null) existingProduct.setCategory(category);
+            if (brand != null) existingProduct.setBrand(brand);
 
             // Handle new image upload
             if (imageFile != null && !imageFile.isEmpty()) {
@@ -157,6 +166,70 @@ public class ProductController {
             return ResponseEntity.noContent().build();
         }
         throw new ResourceNotFoundException("Product not found with id: " + id);
+    }
+
+    /**
+     * ✅ Search + Filter + Pagination + Sorting
+     * sort example: sort=name,desc  (defaults to id,asc)
+     */
+    @GetMapping("/search")
+    public ResponseEntity<Page<Product>> searchProducts(
+            @RequestParam(required = false) String query,
+            @RequestParam(required = false) String category,
+            @RequestParam(required = false) String brand,
+            @RequestParam(required = false) Double minPrice,
+            @RequestParam(required = false) Double maxPrice,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(defaultValue = "id,asc") String sort) {
+
+        // Sorting (robust parsing)
+        String[] sortParams = sort.split(",", 2);
+        String sortBy = (sortParams.length > 0 && !sortParams[0].isBlank()) ? sortParams[0] : "id";
+        Sort.Direction direction = (sortParams.length > 1 && "desc".equalsIgnoreCase(sortParams[1]))
+                ? Sort.Direction.DESC : Sort.Direction.ASC;
+
+        Pageable pageable = PageRequest.of(page, size, Sort.by(direction, sortBy));
+
+        // Get all products (you can later replace with a repository-level search)
+        List<Product> products = productService.getAllProducts();
+
+        // Apply filters
+        List<Product> filtered = products.stream()
+                .filter(p -> query == null
+                        || (p.getName() != null && p.getName().toLowerCase().contains(query.toLowerCase()))
+                        || (p.getDescription() != null && p.getDescription().toLowerCase().contains(query.toLowerCase())))
+                .filter(p -> category == null
+                        || (p.getCategory() != null && p.getCategory().equalsIgnoreCase(category)))
+                .filter(p -> brand == null
+                        || (p.getBrand() != null && p.getBrand().equalsIgnoreCase(brand)))
+                .filter(p -> minPrice == null || p.getPrice() >= minPrice)
+                .filter(p -> maxPrice == null || p.getPrice() <= maxPrice)
+                .collect(Collectors.toList());
+
+        // Convert list to page (safe for out-of-range pages)
+        int start = (int) pageable.getOffset();
+        int end = Math.min(start + pageable.getPageSize(), filtered.size());
+        List<Product> content = (start >= filtered.size()) ? Collections.emptyList() : filtered.subList(start, end);
+
+        Page<Product> productPage = new PageImpl<>(content, pageable, filtered.size());
+        return ResponseEntity.ok(productPage);
+    }
+
+    /**
+     * ✅ Direct filter by category
+     */
+    @GetMapping("/category/{category}")
+    public List<Product> getProductsByCategory(@PathVariable String category) {
+        return productService.getProductsByCategory(category);
+    }
+
+    /**
+     * ✅ Direct filter by brand
+     */
+    @GetMapping("/brand/{brand}")
+    public List<Product> getProductsByBrand(@PathVariable String brand) {
+        return productService.getProductsByBrand(brand);
     }
 
     /**

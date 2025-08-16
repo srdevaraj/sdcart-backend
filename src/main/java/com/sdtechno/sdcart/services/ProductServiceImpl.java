@@ -70,4 +70,46 @@ public class ProductServiceImpl implements ProductService {
         }
         return false;
     }
+
+    // ✅ Optional service-level update (not required by controller)
+    @Override
+    public Product updateProduct(Long id, Product updatedProduct, MultipartFile imageFile) throws Exception {
+        Optional<Product> existingProductOpt = productRepository.findById(id);
+
+        if (existingProductOpt.isEmpty()) {
+            throw new RuntimeException("Product with ID " + id + " not found.");
+        }
+
+        Product existingProduct = existingProductOpt.get();
+
+        // Update fields (null/zero checks as needed)
+        if (updatedProduct.getName() != null) existingProduct.setName(updatedProduct.getName());
+        if (updatedProduct.getDescription() != null) existingProduct.setDescription(updatedProduct.getDescription());
+        if (updatedProduct.getPrice() > 0) existingProduct.setPrice(updatedProduct.getPrice());
+        if (updatedProduct.getRatings() >= 0) existingProduct.setRatings(updatedProduct.getRatings());
+        if (updatedProduct.getSeller() != null) existingProduct.setSeller(updatedProduct.getSeller());
+        if (updatedProduct.getStock() >= 0) existingProduct.setStock(updatedProduct.getStock());
+        if (updatedProduct.getNumOfReviews() >= 0) existingProduct.setNumOfReviews(updatedProduct.getNumOfReviews());
+        if (updatedProduct.getCategory() != null) existingProduct.setCategory(updatedProduct.getCategory());
+        if (updatedProduct.getBrand() != null) existingProduct.setBrand(updatedProduct.getBrand());
+
+        if (imageFile != null && !imageFile.isEmpty()) {
+            Map uploadResult = cloudinary.uploader().upload(imageFile.getBytes(), ObjectUtils.emptyMap());
+            String imageUrl = (String) uploadResult.get("secure_url");
+            existingProduct.setImageUrl(imageUrl);
+        }
+
+        return productRepository.save(existingProduct);
+    }
+
+    // ✅ Implemented to match new controller endpoints
+    @Override
+    public List<Product> getProductsByCategory(String category) {
+        return productRepository.findByCategoryIgnoreCase(category);
+    }
+
+    @Override
+    public List<Product> getProductsByBrand(String brand) {
+        return productRepository.findByBrandIgnoreCase(brand);
+    }
 }

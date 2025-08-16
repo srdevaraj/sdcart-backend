@@ -11,19 +11,67 @@ import com.sdtechno.sdcart.models.Product;
 import com.sdtechno.sdcart.repositories.ProductRepository;
 
 @Component
-public class DataSeeder implements CommandLineRunner{
+public class DataSeeder implements CommandLineRunner {
 
-	@Autowired
-	private ProductRepository productrepository;
-	@Override
-	public void run(String ...args) throws Exception{
-		if(productrepository.count() == 0) {
-			List<Product> products = Arrays.asList(
-				 new Product("Realme narzo 70pro ",18000,"The realme narzo 70 pro is the best mobile",9.8,"Realme",10,120),
-				 new Product("Realme 70pro ",25000,"The realme 70 pro is the best mobile",7.8,"Realme",10,120)
-			);
-			productrepository.saveAll(products);
-			System.out.println("Data seeded successfully....(*_*)");
-		}
-	}
+    @Autowired
+    private ProductRepository productRepository;
+
+    @Override
+    public void run(String... args) throws Exception {
+        long count = productRepository.count();
+
+        if (count == 0) {
+            List<Product> products = Arrays.asList(
+                new Product(
+                    "Realme Narzo 70 Pro",
+                    18000.0,
+                    "The Realme Narzo 70 Pro is the best budget mobile",
+                    9.8,
+                    "Realme",
+                    10,
+                    120,
+                    "Smartphones",   // category
+                    "Realme"        // brand
+                ),
+                new Product(
+                    "Realme 70 Pro",
+                    25000.0,
+                    "The Realme 70 Pro is a high-performance smartphone",
+                    8.5,
+                    "Realme",
+                    15,
+                    100,
+                    "Smartphones",   // category
+                    "Realme"        // brand
+                ),
+                new Product(
+                    "Samsung Galaxy F55",
+                    17999.0,
+                    "The Samsung Galaxy F55 5G is a mid-range smartphone with a vegan leather design",
+                    9.0,
+                    "Samsung",
+                    20,
+                    95,
+                    "Smartphones",   // category
+                    "Samsung"       // brand
+                ),
+                new Product(
+                    "iPhone 15",
+                    79999.0,
+                    "The Apple iPhone 15 with A16 Bionic chip and Dynamic Island",
+                    9.5,
+                    "Apple",
+                    5,
+                    200,
+                    "Smartphones",   // category
+                    "Apple"         // brand
+                )
+            );
+
+            productRepository.saveAll(products);
+            System.out.println("✅ Data seeded successfully with " + products.size() + " products.");
+        } else {
+            System.out.println("ℹ️ Skipping seeding. Already found " + count + " products in DB.");
+        }
+    }
 }

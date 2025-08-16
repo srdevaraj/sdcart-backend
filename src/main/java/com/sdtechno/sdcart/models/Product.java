@@ -16,14 +16,20 @@ public class Product {
     private int stock;
     private int numOfReviews;
 
-    // ✅ Store only image URL (file saved to uploads/)
+    // ✅ Store only image URL (file saved to Cloudinary)
     private String imageUrl;
+
+    // ✅ New fields for filtering
+    private String category;
+    private String brand;
 
     public Product() {
         super();
     }
 
-    public Product(String name, double price, String description, double ratings, String seller, int stock, int numOfReviews) {
+    public Product(String name, double price, String description, double ratings,
+                   String seller, int stock, int numOfReviews,
+                   String category, String brand) {
         super();
         this.name = name;
         this.price = price;
@@ -32,6 +38,8 @@ public class Product {
         this.seller = seller;
         this.stock = stock;
         this.numOfReviews = numOfReviews;
+        this.category = category;
+        this.brand = brand;
     }
 
     // Getters and Setters
@@ -61,4 +69,10 @@ public class Product {
 
     public String getImageUrl() { return imageUrl; }
     public void setImageUrl(String imageUrl) { this.imageUrl = imageUrl; }
+
+    public String getCategory() { return category; }
+    public void setCategory(String category) { this.category = category; }
+
+    public String getBrand() { return brand; }
+    public void setBrand(String brand) { this.brand = brand; }
 }
