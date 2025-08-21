@@ -49,7 +49,7 @@ public class ProductServiceImpl implements ProductService {
     @Override
     public Product saveProductWithImage(Product product, MultipartFile imageFile) throws Exception {
         if (imageFile != null && !imageFile.isEmpty()) {
-            Map uploadResult = cloudinary.uploader().upload(imageFile.getBytes(), ObjectUtils.emptyMap());
+            Map<?, ?> uploadResult = cloudinary.uploader().upload(imageFile.getBytes(), ObjectUtils.emptyMap());
             String imageUrl = (String) uploadResult.get("secure_url");
             product.setImageUrl(imageUrl);
         }
@@ -71,7 +71,6 @@ public class ProductServiceImpl implements ProductService {
         return false;
     }
 
-    // ✅ Optional service-level update (not required by controller)
     @Override
     public Product updateProduct(Long id, Product updatedProduct, MultipartFile imageFile) throws Exception {
         Optional<Product> existingProductOpt = productRepository.findById(id);
@@ -82,7 +81,6 @@ public class ProductServiceImpl implements ProductService {
 
         Product existingProduct = existingProductOpt.get();
 
-        // Update fields (null/zero checks as needed)
         if (updatedProduct.getName() != null) existingProduct.setName(updatedProduct.getName());
         if (updatedProduct.getDescription() != null) existingProduct.setDescription(updatedProduct.getDescription());
         if (updatedProduct.getPrice() > 0) existingProduct.setPrice(updatedProduct.getPrice());
@@ -94,7 +92,7 @@ public class ProductServiceImpl implements ProductService {
         if (updatedProduct.getBrand() != null) existingProduct.setBrand(updatedProduct.getBrand());
 
         if (imageFile != null && !imageFile.isEmpty()) {
-            Map uploadResult = cloudinary.uploader().upload(imageFile.getBytes(), ObjectUtils.emptyMap());
+            Map<?, ?> uploadResult = cloudinary.uploader().upload(imageFile.getBytes(), ObjectUtils.emptyMap());
             String imageUrl = (String) uploadResult.get("secure_url");
             existingProduct.setImageUrl(imageUrl);
         }
@@ -102,7 +100,6 @@ public class ProductServiceImpl implements ProductService {
         return productRepository.save(existingProduct);
     }
 
-    // ✅ Implemented to match new controller endpoints
     @Override
     public List<Product> getProductsByCategory(String category) {
         return productRepository.findByCategoryIgnoreCase(category);
@@ -111,5 +108,32 @@ public class ProductServiceImpl implements ProductService {
     @Override
     public List<Product> getProductsByBrand(String brand) {
         return productRepository.findByBrandIgnoreCase(brand);
+    }
+
+    // ✅ Combined search with null/empty safety
+    @Override
+    public List<Product> searchProducts(String query, String category, String brand) {
+        // normalize empty strings to null
+        if (query != null && query.trim().isEmpty()) query = null;
+        if (category != null && category.trim().isEmpty()) category = null;
+        if (brand != null && brand.trim().isEmpty()) brand = null;
+
+        if (query != null && category != null && brand != null) {
+            return productRepository.findByNameContainingIgnoreCaseAndCategoryIgnoreCaseAndBrandIgnoreCase(query, category, brand);
+        } else if (query != null && category != null) {
+            return productRepository.findByNameContainingIgnoreCaseAndCategoryIgnoreCase(query, category);
+        } else if (query != null && brand != null) {
+            return productRepository.findByNameContainingIgnoreCaseAndBrandIgnoreCase(query, brand);
+        } else if (category != null && brand != null) {
+            return productRepository.findByCategoryIgnoreCaseAndBrandIgnoreCase(category, brand);
+        } else if (query != null) {
+            return productRepository.findByNameContainingIgnoreCase(query);
+        } else if (category != null) {
+            return productRepository.findByCategoryIgnoreCase(category);
+        } else if (brand != null) {
+            return productRepository.findByBrandIgnoreCase(brand);
+        } else {
+            return productRepository.findAll();
+        }
     }
 }

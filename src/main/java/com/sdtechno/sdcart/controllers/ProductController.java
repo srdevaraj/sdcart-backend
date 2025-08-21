@@ -170,7 +170,6 @@ public class ProductController {
 
     /**
      * ✅ Search + Filter + Pagination + Sorting
-     * sort example: sort=name,desc  (defaults to id,asc)
      */
     @GetMapping("/search")
     public ResponseEntity<Page<Product>> searchProducts(
@@ -185,13 +184,13 @@ public class ProductController {
 
         // Sorting (robust parsing)
         String[] sortParams = sort.split(",", 2);
-        String sortBy = (sortParams.length > 0 && !sortParams[0].isBlank()) ? sortParams[0] : "id";
+        String sortBy = (sortParams.length > 0 && !sortParams[0].trim().isEmpty()) ? sortParams[0] : "id";
         Sort.Direction direction = (sortParams.length > 1 && "desc".equalsIgnoreCase(sortParams[1]))
                 ? Sort.Direction.DESC : Sort.Direction.ASC;
 
         Pageable pageable = PageRequest.of(page, size, Sort.by(direction, sortBy));
 
-        // Get all products (you can later replace with a repository-level search)
+        // Get all products
         List<Product> products = productService.getAllProducts();
 
         // Apply filters

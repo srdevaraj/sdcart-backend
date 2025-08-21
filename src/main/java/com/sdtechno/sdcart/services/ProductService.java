@@ -16,10 +16,13 @@ public interface ProductService {
     List<Product> searchProducts(String keyword);
     boolean deleteProduct(Long id);
 
-    // ✅ New update method (optional usage)
+    // ✅ Update product
     Product updateProduct(Long id, Product updatedProduct, MultipartFile imageFile) throws Exception;
 
-    // ✅ Added to match controller endpoints
+    // ✅ Category & Brand
     List<Product> getProductsByCategory(String category);
     List<Product> getProductsByBrand(String brand);
+
+    // ✅ Combined search with optional filters
+    List<Product> searchProducts(String query, String category, String brand);
 }
