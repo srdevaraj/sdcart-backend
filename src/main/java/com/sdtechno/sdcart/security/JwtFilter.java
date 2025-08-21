@@ -39,7 +39,8 @@ public class JwtFilter implements Filter {
             path.equals("/products/light") ||
             path.startsWith("/products/product/")||
             path.startsWith("/products/test")||
-            path.startsWith("/api/ads")
+            path.startsWith("/api/ads")||
+            path.startsWith("/products/search")
         ) {
             chain.doFilter(request, response);
             return;
