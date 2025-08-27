@@ -43,9 +43,9 @@ public class DeliveryAddressController {
     }
 
     @GetMapping
-    public ResponseEntity<List<DeliveryAddress>> getUserAddresses(HttpServletRequest request) {
+    public ResponseEntity<DeliveryAddress> getUserAddress(HttpServletRequest request) {
         User user = getUserFromRequest(request);
-        return ResponseEntity.ok(addressService.getUserAddresses(user));
+        return ResponseEntity.ok(addressService.getUserAddress(user));
     }
 
     @PutMapping("/{id}")

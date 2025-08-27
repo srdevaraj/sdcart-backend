@@ -18,13 +18,32 @@ public class DeliveryAddressServiceImpl implements DeliveryAddressService {
 
     @Override
     public DeliveryAddress addAddress(User user, DeliveryAddress address) {
-        address.setUser(user);
-        return addressRepository.save(address);
+        // Check if user already has an address
+        DeliveryAddress existing = addressRepository.findByUser(user).orElse(null);
+
+        if (existing != null) {
+            // Update existing address fields
+            existing.setFullName(address.getFullName());
+            existing.setMobileNumber(address.getMobileNumber());
+            existing.setAltMobileNumber(address.getAltMobileNumber());
+            existing.setAddressLine1(address.getAddressLine1());
+            existing.setAddressLine2(address.getAddressLine2());
+            existing.setCity(address.getCity());
+            existing.setState(address.getState());
+            existing.setPincode(address.getPincode());
+            existing.setLandmark(address.getLandmark());
+            return addressRepository.save(existing);
+        } else {
+            // No address yet → create new
+            address.setUser(user);
+            return addressRepository.save(address);
+        }
     }
 
+
     @Override
-    public List<DeliveryAddress> getUserAddresses(User user) {
-        return addressRepository.findByUser(user);
+    public DeliveryAddress getUserAddress(User user) {
+        return addressRepository.findByUser(user).orElse(null);
     }
 
     @Override
