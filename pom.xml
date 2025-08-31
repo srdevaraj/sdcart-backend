@@ -70,13 +70,13 @@
             <version>6.2.1</version>
         </dependency>
 
-        <!-- ✅ Spring Security starter (for @PreAuthorize, filters, etc.) -->
+        <!-- ✅ Spring Security starter -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-security</artifactId>
         </dependency>
 
-        <!-- ✅ JSON Web Token (JJWT) - Modern and Full Support -->
+        <!-- ✅ JSON Web Token (JJWT) -->
         <dependency>
             <groupId>io.jsonwebtoken</groupId>
             <artifactId>jjwt-api</artifactId>
@@ -93,6 +93,20 @@
             <artifactId>jjwt-jackson</artifactId>
             <version>0.11.5</version>
             <scope>runtime</scope>
+        </dependency>
+
+        <!-- ✅ Razorpay Java SDK -->
+        <dependency>
+            <groupId>com.razorpay</groupId>
+            <artifactId>razorpay-java</artifactId>
+            <version>1.4.3</version>
+        </dependency>
+
+        <!-- ✅ org.json (needed for JSONObject) -->
+        <dependency>
+            <groupId>org.json</groupId>
+            <artifactId>json</artifactId>
+            <version>20240303</version>
         </dependency>
     </dependencies>
 
