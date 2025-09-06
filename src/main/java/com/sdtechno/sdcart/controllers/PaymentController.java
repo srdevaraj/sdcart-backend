@@ -2,6 +2,7 @@ package com.sdtechno.sdcart.controllers;
 
 import com.razorpay.Order;
 import com.razorpay.RazorpayClient;
+import com.sdtechno.sdcart.dto.VerifyPaymentRequest;
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
@@ -25,12 +26,11 @@ public class PaymentController {
         return order.toString();
     }
 
-    // Verify payment (simplified for Test Mode)
+    // Verify payment using JSON body
     @PostMapping("/verify")
-    public String verifyPayment(@RequestParam String razorpayPaymentId,
-                                @RequestParam String razorpayOrderId,
-                                @RequestParam String razorpaySignature) {
-        // For test mode, assume payment is always successful
-        return "Payment Successful! Your order is confirmed.";
+    public String verifyPayment(@RequestBody VerifyPaymentRequest request) {
+        // In production: validate signature using HMAC_SHA256
+        // For now: Test Mode = always successful
+        return "Payment Successful for Order: " + request.getRazorpayOrderId();
     }
 }
