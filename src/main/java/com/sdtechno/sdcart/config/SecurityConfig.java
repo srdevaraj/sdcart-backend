@@ -28,7 +28,8 @@ public class SecurityConfig {
                 .requestMatchers("/products/light").permitAll()
                 .requestMatchers("/products/product/**").permitAll()
                 .requestMatchers("/products/test").permitAll()
-                .requestMatchers("/api/ads/upload").permitAll()
+                .requestMatchers("/api/ads").permitAll()
+                .requestMatchers("/api/ads/upload").hasRole("ADMIN")  // ✅ protect upload
                 .requestMatchers("/products/search").permitAll()
                 .requestMatchers("/products/category/**").permitAll()
                 .anyRequest().authenticated()
