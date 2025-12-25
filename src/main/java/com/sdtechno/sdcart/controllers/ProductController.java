@@ -15,8 +15,10 @@ import org.springframework.web.multipart.MultipartFile;
 
 import com.cloudinary.Cloudinary;
 import com.cloudinary.utils.ObjectUtils;
+import com.sdtechno.sdcart.dto.SearchCriteria;
 import com.sdtechno.sdcart.exceptions.ResourceNotFoundException;
 import com.sdtechno.sdcart.models.Product;
+import com.sdtechno.sdcart.search.SearchQueryParser;
 import com.sdtechno.sdcart.services.ProductService;
 
 @RestController
@@ -171,48 +173,22 @@ public class ProductController {
     /**
      * ✅ Search + Filter + Pagination + Sorting
      */
+    @Autowired
+    private SearchQueryParser searchQueryParser;
+
     @GetMapping("/search")
     public ResponseEntity<Page<Product>> searchProducts(
-            @RequestParam(required = false) String query,
-            @RequestParam(required = false) String category,
-            @RequestParam(required = false) String brand,
-            @RequestParam(required = false) Double minPrice,
-            @RequestParam(required = false) Double maxPrice,
+            @RequestParam String q,
             @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int size,
-            @RequestParam(defaultValue = "id,asc") String sort) {
+            @RequestParam(defaultValue = "10") int size) {
 
-        // Sorting (robust parsing)
-        String[] sortParams = sort.split(",", 2);
-        String sortBy = (sortParams.length > 0 && !sortParams[0].trim().isEmpty()) ? sortParams[0] : "id";
-        Sort.Direction direction = (sortParams.length > 1 && "desc".equalsIgnoreCase(sortParams[1]))
-                ? Sort.Direction.DESC : Sort.Direction.ASC;
+        Pageable pageable = PageRequest.of(page, size);
 
-        Pageable pageable = PageRequest.of(page, size, Sort.by(direction, sortBy));
+        SearchCriteria criteria = searchQueryParser.parse(q);
 
-        // Get all products
-        List<Product> products = productService.getAllProducts();
+        Page<Product> result = productService.search(criteria, pageable);
 
-        // Apply filters
-        List<Product> filtered = products.stream()
-                .filter(p -> query == null
-                        || (p.getName() != null && p.getName().toLowerCase().contains(query.toLowerCase()))
-                        || (p.getDescription() != null && p.getDescription().toLowerCase().contains(query.toLowerCase())))
-                .filter(p -> category == null
-                        || (p.getCategory() != null && p.getCategory().equalsIgnoreCase(category)))
-                .filter(p -> brand == null
-                        || (p.getBrand() != null && p.getBrand().equalsIgnoreCase(brand)))
-                .filter(p -> minPrice == null || p.getPrice() >= minPrice)
-                .filter(p -> maxPrice == null || p.getPrice() <= maxPrice)
-                .collect(Collectors.toList());
-
-        // Convert list to page (safe for out-of-range pages)
-        int start = (int) pageable.getOffset();
-        int end = Math.min(start + pageable.getPageSize(), filtered.size());
-        List<Product> content = (start >= filtered.size()) ? Collections.emptyList() : filtered.subList(start, end);
-
-        Page<Product> productPage = new PageImpl<>(content, pageable, filtered.size());
-        return ResponseEntity.ok(productPage);
+        return ResponseEntity.ok(result);
     }
 
     /**

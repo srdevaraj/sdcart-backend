@@ -1,5 +1,8 @@
 package com.sdtechno.sdcart.models;
 
+import java.util.HashMap;
+import java.util.Map;
+
 import jakarta.persistence.*;
 
 @Entity
@@ -22,6 +25,16 @@ public class Product {
     // ✅ New fields for filtering
     private String category;
     private String brand;
+    
+    @ElementCollection
+    @CollectionTable(
+        name = "product_attributes",
+        joinColumns = @JoinColumn(name = "product_id")
+    )
+    @MapKeyColumn(name = "attr_key")
+    @Column(name = "attr_value")
+    private Map<String, String> attributes = new HashMap<>();
+
 
     public Product() {
         super();
@@ -75,4 +88,13 @@ public class Product {
 
     public String getBrand() { return brand; }
     public void setBrand(String brand) { this.brand = brand; }
+    
+    public Map<String, String> getAttributes() {
+        return attributes;
+    }
+
+    public void setAttributes(Map<String, String> attributes) {
+        this.attributes = attributes;
+    }
+
 }
