@@ -30,7 +30,7 @@ public class SecurityConfig {
                 .requestMatchers("/products/test").permitAll()
                 .requestMatchers("/api/ads").permitAll()
                 .requestMatchers("/api/ads/upload").hasRole("ADMIN")  // ✅ protect upload
-                .requestMatchers("/products/search").permitAll()
+                .requestMatchers("/products/search/**").permitAll() // 👈 TEMP FIX
                 .requestMatchers("/products/category/**").permitAll()
                 .anyRequest().authenticated()
             )
