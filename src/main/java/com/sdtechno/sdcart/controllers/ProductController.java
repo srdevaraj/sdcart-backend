@@ -183,13 +183,15 @@ public class ProductController {
             @RequestParam(defaultValue = "10") int size) {
 
         Pageable pageable = PageRequest.of(page, size);
-
         SearchCriteria criteria = searchQueryParser.parse(q);
 
-        Page<Product> result = productService.search(criteria, pageable);
+        logger.info("Search Query: {}", q);
+        logger.info("Parsed Criteria: {}", criteria);
 
+        Page<Product> result = productService.search(criteria, pageable	);
         return ResponseEntity.ok(result);
     }
+
 
     /**
      * ✅ Direct filter by category

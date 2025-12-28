@@ -8,6 +8,12 @@ import java.util.List;
 @Component
 public class SearchQueryParser {
 
+    private static final List<String> CATEGORIES =
+            List.of("mobile", "grocery", "fruit", "electrical");
+
+    private static final List<String> BRANDS =
+            List.of("redmi", "realme", "samsung", "apple", "vivo");
+
     public SearchCriteria parse(String query) {
 
         SearchCriteria c = new SearchCriteria();
@@ -18,36 +24,40 @@ public class SearchQueryParser {
             String token = tokens[i];
 
             // CATEGORY
-            if (List.of("mobile", "grocery", "fruit", "electrical").contains(token)) {
+            if (CATEGORIES.contains(token)) {
                 c.setCategory(token);
                 continue;
             }
 
-            // PRICE
-            if (token.equals("under") && i + 1 < tokens.length) {
-                c.setMaxPrice(Double.parseDouble(tokens[i + 1]));
+            // BRAND
+            if (BRANDS.contains(token)) {
+                c.setBrand(token);
                 continue;
             }
 
-            // MOBILE attributes
+            // PRICE UNDER
+            if (token.equals("under") && i + 1 < tokens.length) {
+                try {
+                    c.setMaxPrice(Double.parseDouble(tokens[i + 1]));
+                } catch (Exception ignored) {}
+                continue;
+            }
+
+            // PRICE ABOVE
+            if (token.equals("above") && i + 1 < tokens.length) {
+                try {
+                    c.setMinPrice(Double.parseDouble(tokens[i + 1]));
+                } catch (Exception ignored) {}
+                continue;
+            }
+
+            // MEMORY (future use)
             if (token.endsWith("gb")) {
                 c.getAttributes().put("memory", token);
                 continue;
             }
 
-            // GROCERY / FRUIT attributes
-            if (token.endsWith("kg")) {
-                c.getAttributes().put("weight", token);
-                continue;
-            }
-
-            // ORGANIC
-            if (token.equals("organic")) {
-                c.getAttributes().put("organic", "true");
-                continue;
-            }
-
-            // KEYWORD (fallback)
+            // KEYWORD (first unmatched word)
             if (c.getKeyword() == null) {
                 c.setKeyword(token);
             }

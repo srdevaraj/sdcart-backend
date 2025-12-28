@@ -5,15 +5,14 @@ import java.util.Map;
 
 public class SearchCriteria {
 
-    private String keyword;      // redmi, rice, fan
-    private String category;     // mobile, grocery, fruit, electrical
+    private String keyword;     // redmi, rice, fan
+    private String category;    // mobile, grocery
+    private String brand;       // redmi, samsung
     private Double minPrice;
     private Double maxPrice;
 
-    // Dynamic filters (ram, storage, weight, organic, etc.)
     private Map<String, String> attributes = new HashMap<>();
 
-    // Getters & Setters
     public String getKeyword() {
         return keyword;
     }
@@ -28,6 +27,14 @@ public class SearchCriteria {
 
     public void setCategory(String category) {
         this.category = category;
+    }
+
+    public String getBrand() {
+        return brand;
+    }
+
+    public void setBrand(String brand) {
+        this.brand = brand;
     }
 
     public Double getMinPrice() {
@@ -48,9 +55,5 @@ public class SearchCriteria {
 
     public Map<String, String> getAttributes() {
         return attributes;
-    }
-
-    public void setAttributes(Map<String, String> attributes) {
-        this.attributes = attributes;
     }
 }
