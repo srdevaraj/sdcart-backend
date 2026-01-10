@@ -14,7 +14,7 @@ public class AccountUserInfoService {
 	
 	public AccountInfoUserDetailsDto getUserAccDetails(String email) {
 		
-		User user = userRepository.findByEmail1(email);
+		User user = userRepository.findByEmail(email).orElseThrow(() -> new RuntimeException("User not found...!"));
 		AccountInfoUserDetailsDto userDto = new AccountInfoUserDetailsDto();
 		userDto.setFirstName(user.getFirstName());
 		userDto.setLastName(user.getLastName());
