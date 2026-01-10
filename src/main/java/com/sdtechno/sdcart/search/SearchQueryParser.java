@@ -19,6 +19,8 @@ public class SearchQueryParser {
         SearchCriteria c = new SearchCriteria();
         String[] tokens = query.toLowerCase().split("\\s+");
 
+        StringBuilder keywordBuilder = new StringBuilder();
+
         for (int i = 0; i < tokens.length; i++) {
 
             String token = tokens[i];
@@ -32,6 +34,7 @@ public class SearchQueryParser {
             // BRAND
             if (BRANDS.contains(token)) {
                 c.setBrand(token);
+                keywordBuilder.append(token).append(" "); // ⭐ keep keyword
                 continue;
             }
 
@@ -40,6 +43,7 @@ public class SearchQueryParser {
                 try {
                     c.setMaxPrice(Double.parseDouble(tokens[i + 1]));
                 } catch (Exception ignored) {}
+                i++; // skip price number
                 continue;
             }
 
@@ -48,21 +52,25 @@ public class SearchQueryParser {
                 try {
                     c.setMinPrice(Double.parseDouble(tokens[i + 1]));
                 } catch (Exception ignored) {}
+                i++;
                 continue;
             }
 
-            // MEMORY (future use)
+            // MEMORY (future)
             if (token.endsWith("gb")) {
-                c.getAttributes().put("memory", token);
                 continue;
             }
 
-            // KEYWORD (first unmatched word)
-            if (c.getKeyword() == null) {
-                c.setKeyword(token);
-            }
+            // NORMAL KEYWORD
+            keywordBuilder.append(token).append(" ");
+        }
+
+        String keyword = keywordBuilder.toString().trim();
+        if (!keyword.isEmpty()) {
+            c.setKeyword(keyword);
         }
 
         return c;
     }
 }
+

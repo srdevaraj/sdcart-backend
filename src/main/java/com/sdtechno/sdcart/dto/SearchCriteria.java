@@ -1,17 +1,12 @@
 package com.sdtechno.sdcart.dto;
 
-import java.util.HashMap;
-import java.util.Map;
-
 public class SearchCriteria {
 
-    private String keyword;     // redmi, rice, fan
-    private String category;    // mobile, grocery
-    private String brand;       // redmi, samsung
+    private String keyword;
+    private String category;
+    private String brand;
     private Double minPrice;
     private Double maxPrice;
-
-    private Map<String, String> attributes = new HashMap<>();
 
     public String getKeyword() {
         return keyword;
@@ -53,7 +48,14 @@ public class SearchCriteria {
         this.maxPrice = maxPrice;
     }
 
-    public Map<String, String> getAttributes() {
-        return attributes;
+    @Override
+    public String toString() {
+        return "SearchCriteria{" +
+                "keyword='" + keyword + '\'' +
+                ", category='" + category + '\'' +
+                ", brand='" + brand + '\'' +
+                ", minPrice=" + minPrice +
+                ", maxPrice=" + maxPrice +
+                '}';
     }
 }

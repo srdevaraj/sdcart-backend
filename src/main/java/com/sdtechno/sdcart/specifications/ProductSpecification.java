@@ -11,19 +11,25 @@ import java.util.List;
 public class ProductSpecification {
 
     public static Specification<Product> byCriteria(SearchCriteria c) {
+
         return (root, query, cb) -> {
 
             List<Predicate> predicates = new ArrayList<>();
 
+            // 🔍 KEYWORD (name OR brand OR category)
             if (c.getKeyword() != null) {
+                String like = "%" + c.getKeyword().toLowerCase() + "%";
+
                 predicates.add(
-                        cb.like(
-                                cb.lower(root.get("name")),
-                                "%" + c.getKeyword().toLowerCase() + "%"
+                        cb.or(
+                                cb.like(cb.lower(root.get("name")), like),
+                                cb.like(cb.lower(root.get("brand")), like),
+                                cb.like(cb.lower(root.get("category")), like)
                         )
                 );
             }
 
+            // 📂 CATEGORY (optional strict)
             if (c.getCategory() != null) {
                 predicates.add(
                         cb.equal(
@@ -33,15 +39,7 @@ public class ProductSpecification {
                 );
             }
 
-            if (c.getBrand() != null) {
-                predicates.add(
-                        cb.equal(
-                                cb.lower(root.get("brand")),
-                                c.getBrand().toLowerCase()
-                        )
-                );
-            }
-
+            // 💰 PRICE
             if (c.getMinPrice() != null) {
                 predicates.add(
                         cb.greaterThanOrEqualTo(root.get("price"), c.getMinPrice())

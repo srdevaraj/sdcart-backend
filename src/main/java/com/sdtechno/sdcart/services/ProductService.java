@@ -31,3 +31,4 @@ public interface ProductService {
     // 🔥 SMART SEARCH (Amazon-style)
     Page<Product> search(SearchCriteria criteria, Pageable pageable);
 }
+
