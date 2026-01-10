@@ -7,6 +7,7 @@ public class AccountInfoUserDetailsDto {
 	private String dob;
 	private String mobile;
 	private String altMobile;
+	private String email;
 	
 	public void setFirstName(String fname) {
 		firstName = fname;
@@ -37,6 +38,12 @@ public class AccountInfoUserDetailsDto {
 	}
 	public String getAltMobile() {
 		return altMobile;
+	}
+	public void setEmail(String email) {
+		this.email = email;
+	}
+	public String getEmail() {
+		return email;
 	}
 	
 }

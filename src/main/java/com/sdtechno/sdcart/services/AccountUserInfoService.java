@@ -21,6 +21,7 @@ public class AccountUserInfoService {
 		userDto.setDob(user.getDob());
 		userDto.setMobile(user.getMobile());
 		userDto.setAltMobile(user.getAltMobile());
+		userDto.setEmail(user.getEmail());
 		
 		return userDto;
 	}
