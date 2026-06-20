@@ -2,7 +2,10 @@ package com.sdtechno.sdcart.services;
 
 import com.cloudinary.Cloudinary;
 import com.cloudinary.utils.ObjectUtils;
+import com.sdtechno.sdcart.dto.ProductControllerCreateProductDto;
+import com.sdtechno.sdcart.dto.ProductControllerUpdateProductDto;
 import com.sdtechno.sdcart.dto.SearchCriteria;
+import com.sdtechno.sdcart.exceptions.ResourceNotFoundException;
 import com.sdtechno.sdcart.models.Product;
 import com.sdtechno.sdcart.repositories.ProductRepository;
 import com.sdtechno.sdcart.specifications.ProductSpecification;
@@ -10,9 +13,12 @@ import com.sdtechno.sdcart.specifications.ProductSpecification;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -26,10 +32,6 @@ public class ProductServiceImpl implements ProductService {
     @Autowired
     private Cloudinary cloudinary;
 
-    // =========================
-    // BASIC CRUD
-    // =========================
-
     @Override
     public List<Product> getAllProducts() {
         return productRepository.findAll();
@@ -41,11 +43,6 @@ public class ProductServiceImpl implements ProductService {
     }
 
     @Override
-    public Product saveProduct(Product product) {
-        return productRepository.save(product);
-    }
-
-    @Override
     public boolean deleteProduct(Long id) {
         if (productRepository.existsById(id)) {
             productRepository.deleteById(id);
@@ -53,10 +50,6 @@ public class ProductServiceImpl implements ProductService {
         }
         return false;
     }
-
-    // =========================
-    // IMAGE UPLOAD
-    // =========================
 
     @Override
     public Product saveProductWithImage(Product product, MultipartFile imageFile) throws Exception {
@@ -68,55 +61,6 @@ public class ProductServiceImpl implements ProductService {
         return productRepository.save(product);
     }
 
-    // =========================
-    // UPDATE PRODUCT
-    // =========================
-
-    @Override
-    public Product updateProduct(Long id, Product updatedProduct, MultipartFile imageFile) throws Exception {
-
-        Product existingProduct = productRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Product not found with id: " + id));
-
-        if (updatedProduct.getName() != null)
-            existingProduct.setName(updatedProduct.getName());
-
-        if (updatedProduct.getDescription() != null)
-            existingProduct.setDescription(updatedProduct.getDescription());
-
-        if (updatedProduct.getPrice() > 0)
-            existingProduct.setPrice(updatedProduct.getPrice());
-
-        if (updatedProduct.getRatings() >= 0)
-            existingProduct.setRatings(updatedProduct.getRatings());
-
-        if (updatedProduct.getSeller() != null)
-            existingProduct.setSeller(updatedProduct.getSeller());
-
-        if (updatedProduct.getStock() >= 0)
-            existingProduct.setStock(updatedProduct.getStock());
-
-        if (updatedProduct.getNumOfReviews() >= 0)
-            existingProduct.setNumOfReviews(updatedProduct.getNumOfReviews());
-
-        if (updatedProduct.getCategory() != null)
-            existingProduct.setCategory(updatedProduct.getCategory());
-
-        if (updatedProduct.getBrand() != null)
-            existingProduct.setBrand(updatedProduct.getBrand());
-
-        if (imageFile != null && !imageFile.isEmpty()) {
-            Map<?, ?> uploadResult =
-                    cloudinary.uploader().upload(imageFile.getBytes(), ObjectUtils.emptyMap());
-            existingProduct.setImageUrl(uploadResult.get("secure_url").toString());
-        }
-
-        return productRepository.save(existingProduct);
-    }
-
-    // =========================
-    // CATEGORY & BRAND FILTERS
-    // =========================
 
     @Override
     public List<Product> getProductsByCategory(String category) {
@@ -128,10 +72,6 @@ public class ProductServiceImpl implements ProductService {
         return productRepository.findByBrandIgnoreCase(brand);
     }
 
-    // =========================
-    // 🔥 SMART SEARCH (AMAZON STYLE)
-    // =========================
-
     @Override
     public Page<Product> search(SearchCriteria criteria, Pageable pageable) {
         return productRepository.findAll(
@@ -139,5 +79,57 @@ public class ProductServiceImpl implements ProductService {
                 pageable
         );
     }
-}
 
+	@Override
+	public ResponseEntity<Map<String, String>> saveProduct(ProductControllerCreateProductDto newProduct) throws IOException {
+		Product product = new Product();
+		product.setName(newProduct.getName());
+		product.setPrice(newProduct.getPrice());
+		product.setDescription(newProduct.getDescription());
+		product.setRatings(newProduct.getRatings());
+		product.setSeller(newProduct.getSeller());
+		product.setStock(newProduct.getStock());
+		product.setNumOfReviews(newProduct.getNoOfReviews());
+		product.setCategory(newProduct.getCategory());
+		product.setBrand(newProduct.getBrand());
+		
+		Map<String, Object> uploadResult = cloudinary.uploader().upload(
+                newProduct.getImageFile().getBytes(),
+                ObjectUtils.asMap("folder", "products")
+        );
+        product.setImageUrl(uploadResult.get("secure_url").toString());
+        
+        productRepository.save(product);
+        return ResponseEntity.status(HttpStatus.CREATED).body(Map.of("Message","Product created"));
+	}
+
+	@Override
+	public ResponseEntity<Map<String, String>> updateProduct(ProductControllerUpdateProductDto updateProduct,Long id) throws IOException {
+		
+		Product existingProduct = productRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Product not found with id: " + id));
+
+        if (updateProduct.getName() != null) existingProduct.setName(updateProduct.getName());
+        if (updateProduct.getDescription() != null) existingProduct.setDescription(updateProduct.getDescription());
+        if (updateProduct.getPrice() != null && updateProduct.getPrice()> 0) existingProduct.setPrice(updateProduct.getPrice());
+        if (updateProduct.getRatings() != null && updateProduct.getRatings()>= 0) existingProduct.setRatings(updateProduct.getRatings());
+        if (updateProduct.getSeller()!= null) existingProduct.setSeller(updateProduct.getSeller());
+        if (updateProduct.getStock() != null && updateProduct.getStock() >= 0) existingProduct.setStock(updateProduct.getStock());
+        if (updateProduct.getNoOfReviews() != null && updateProduct.getNoOfReviews()>= 0) existingProduct.setNumOfReviews(updateProduct.getNoOfReviews());
+        if (updateProduct.getCategory()!= null) existingProduct.setCategory(updateProduct.getCategory());
+        if (updateProduct.getBrand() != null) existingProduct.setBrand(updateProduct.getBrand());
+
+        // Handle new image upload
+        if (updateProduct.getImageFile() != null && !updateProduct.getImageFile().isEmpty()) {
+            Map<String, Object> uploadResult = cloudinary.uploader().upload(
+                    updateProduct.getImageFile().getBytes(),
+                    ObjectUtils.asMap("folder", "products")
+            );
+            existingProduct.setImageUrl(uploadResult.get("secure_url").toString());
+        }
+
+        productRepository.save(existingProduct);
+        return ResponseEntity.accepted().body(Map.of("Message","Product Updated Successfully"));
+
+	}
+}

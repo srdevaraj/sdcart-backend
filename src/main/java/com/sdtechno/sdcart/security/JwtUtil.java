@@ -1,12 +1,16 @@
 package com.sdtechno.sdcart.security;
 
-import io.jsonwebtoken.*;
-import io.jsonwebtoken.security.Keys;
-import org.springframework.stereotype.Component;
-
 import java.security.Key;
 import java.util.Date;
 import java.util.Map;
+import java.util.function.Function;
+
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.stereotype.Component;
+
+import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.Jwts;
+import io.jsonwebtoken.security.Keys;
 
 @Component
 public class JwtUtil {
@@ -26,8 +30,22 @@ public class JwtUtil {
                 .compact();
     }
 
+    
+    private Claims getClaims(String token) {
+        return Jwts.parserBuilder()
+                .setSigningKey(SECRET_KEY)
+                .build()
+                .parseClaimsJws(token)
+                .getBody();
+    }
+    
+    private <T>T extractAllClaims(String token,Function<Claims,T>claimResolver){
+    	Claims claims = getClaims(token);
+    	return claimResolver.apply(claims);
+    }
+    
     public String extractUsername(String token) {
-        return getClaims(token).getBody().getSubject();
+        return extractAllClaims(token,Claims::getSubject);
     }
 
     // ✅ Optional alias for clarity
@@ -36,22 +54,18 @@ public class JwtUtil {
     }
 
     public String extractRole(String token) {
-        return getClaims(token).getBody().get("role", String.class);
+        return getClaims(token).get("role", String.class);
+    }
+    
+    public Date extractExpiration(String token) {
+    	return extractAllClaims(token,Claims::getExpiration);
     }
 
-    public boolean validateToken(String token) {
-        try {
-            getClaims(token);
-            return true;
-        } catch (JwtException | IllegalArgumentException e) {
-            return false;
-        }
+    public boolean isTokenExpired(String token) {
+    	return extractExpiration(token).before(new Date());
     }
-
-    private Jws<Claims> getClaims(String token) {
-        return Jwts.parserBuilder()
-                .setSigningKey(SECRET_KEY)
-                .build()
-                .parseClaimsJws(token);
+    public boolean validateToken(String token,UserDetails userDetails) {
+    	final String username = extractAllClaims(token,Claims::getSubject);
+    	return username.equals(username.equals(userDetails.getUsername()) && !isTokenExpired(token));
     }
 }

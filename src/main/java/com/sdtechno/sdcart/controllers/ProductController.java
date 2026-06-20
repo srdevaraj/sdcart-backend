@@ -1,20 +1,32 @@
 package com.sdtechno.sdcart.controllers;
 
 import java.io.IOException;
-import java.util.*;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.*;
-import org.springframework.http.*;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.web.bind.annotation.*;
-import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
 
 import com.cloudinary.Cloudinary;
-import com.cloudinary.utils.ObjectUtils;
+import com.sdtechno.sdcart.dto.ProductControllerCreateProductDto;
+import com.sdtechno.sdcart.dto.ProductControllerUpdateProductDto;
 import com.sdtechno.sdcart.dto.SearchCriteria;
 import com.sdtechno.sdcart.exceptions.ResourceNotFoundException;
 import com.sdtechno.sdcart.models.Product;
@@ -39,44 +51,12 @@ public class ProductController {
      */
     @PostMapping(consumes = {"multipart/form-data"})
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<Product> createProduct(
-            @RequestParam("name") String name,
-            @RequestParam("price") double price,
-            @RequestParam("description") String description,
-            @RequestParam("ratings") double ratings,
-            @RequestParam("seller") String seller,
-            @RequestParam("stock") int stock,
-            @RequestParam("numOfReviews") int numOfReviews,
-            @RequestParam(value = "category", required = false) String category,
-            @RequestParam(value = "brand", required = false) String brand,
-            @RequestPart(value = "imageFile", required = false) MultipartFile imageFile) {
+    public ResponseEntity<Map<String, String>> createProduct(@RequestParam ProductControllerCreateProductDto newProduct) {
 
         try {
-            Product product = new Product();
-            product.setName(name);
-            product.setPrice(price);
-            product.setDescription(description);
-            product.setRatings(ratings);
-            product.setSeller(seller);
-            product.setStock(stock);
-            product.setNumOfReviews(numOfReviews);
-            product.setCategory(category);
-            product.setBrand(brand);
-
-            // Handle image upload
-            if (imageFile != null && !imageFile.isEmpty()) {
-                Map<String, Object> uploadResult = cloudinary.uploader().upload(
-                        imageFile.getBytes(),
-                        ObjectUtils.asMap("folder", "products")
-                );
-                product.setImageUrl(uploadResult.get("secure_url").toString());
-            }
-
-            Product savedProduct = productService.saveProduct(product);
-            return ResponseEntity.status(HttpStatus.CREATED).body(savedProduct);
-
+        	return productService.saveProduct(newProduct);
         } catch (IOException e) {
-            logger.error("Error uploading image for product '{}': {}", name, e.getMessage(), e);
+            logger.error("Error uploading image for product '{}': {}", newProduct.getName(), e.getMessage(), e);
             throw new RuntimeException("Image upload failed: " + e.getMessage(), e);
         }
     }
@@ -86,45 +66,11 @@ public class ProductController {
      */
     @PutMapping(value = "/update/{id}", consumes = {"multipart/form-data"})
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<Product> updateProductById(
-            @PathVariable Long id,
-            @RequestParam(value = "name", required = false) String name,
-            @RequestParam(value = "price", required = false) Double price,
-            @RequestParam(value = "description", required = false) String description,
-            @RequestParam(value = "ratings", required = false) Double ratings,
-            @RequestParam(value = "seller", required = false) String seller,
-            @RequestParam(value = "stock", required = false) Integer stock,
-            @RequestParam(value = "numOfReviews", required = false) Integer numOfReviews,
-            @RequestParam(value = "category", required = false) String category,
-            @RequestParam(value = "brand", required = false) String brand,
-            @RequestPart(value = "imageFile", required = false) MultipartFile imageFile) {
+    public ResponseEntity<Map<String, String>> updateProductById(
+            @PathVariable Long id,@RequestParam ProductControllerUpdateProductDto updateProduct) {
 
         try {
-            Product existingProduct = productService.getProductById(id)
-                    .orElseThrow(() -> new ResourceNotFoundException("Product not found with id: " + id));
-
-            if (name != null) existingProduct.setName(name);
-            if (description != null) existingProduct.setDescription(description);
-            if (price != null && price > 0) existingProduct.setPrice(price);
-            if (ratings != null && ratings >= 0) existingProduct.setRatings(ratings);
-            if (seller != null) existingProduct.setSeller(seller);
-            if (stock != null && stock >= 0) existingProduct.setStock(stock);
-            if (numOfReviews != null && numOfReviews >= 0) existingProduct.setNumOfReviews(numOfReviews);
-            if (category != null) existingProduct.setCategory(category);
-            if (brand != null) existingProduct.setBrand(brand);
-
-            // Handle new image upload
-            if (imageFile != null && !imageFile.isEmpty()) {
-                Map<String, Object> uploadResult = cloudinary.uploader().upload(
-                        imageFile.getBytes(),
-                        ObjectUtils.asMap("folder", "products")
-                );
-                existingProduct.setImageUrl(uploadResult.get("secure_url").toString());
-            }
-
-            Product updatedProduct = productService.saveProduct(existingProduct);
-            return ResponseEntity.ok(updatedProduct);
-
+        	return productService.updateProduct(updateProduct, id);
         } catch (IOException e) {
             logger.error("Error updating product with id '{}': {}", id, e.getMessage(), e);
             throw new RuntimeException("Image upload failed during update: " + e.getMessage(), e);

@@ -13,6 +13,7 @@ public class Product {
 
     private String name;
     private double price;
+    @Column(length = 5000)
     private String description;
     private double ratings;
     private String seller;

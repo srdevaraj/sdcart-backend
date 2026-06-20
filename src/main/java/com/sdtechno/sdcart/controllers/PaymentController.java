@@ -1,12 +1,20 @@
 package com.sdtechno.sdcart.controllers;
 
+import org.json.JSONObject;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
+
 import com.razorpay.Order;
 import com.razorpay.RazorpayClient;
 import com.sdtechno.sdcart.dto.VerifyPaymentRequest;
 import com.sdtechno.sdcart.security.JwtUtil;
-import org.json.JSONObject;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.*;
+import com.sdtechno.sdcart.services.CustomUserDetailsService;
 
 @RestController
 @RequestMapping("/api/payment")
@@ -17,6 +25,9 @@ public class PaymentController {
 
     @Autowired
     private JwtUtil jwtUtil;
+    
+    @Autowired
+    private CustomUserDetailsService customUserDetailsService;
 
     // ✅ Create Razorpay order
     @PostMapping("/create-order")
@@ -40,7 +51,8 @@ public class PaymentController {
         }
 
         String token = authHeader.substring(7); // remove "Bearer "
-        if (!jwtUtil.validateToken(token)) {
+        UserDetails userDetails = customUserDetailsService.loadUserByUsername(token);
+        if (!jwtUtil.validateToken(token,userDetails)) {
             return "Invalid token";
         }
 
