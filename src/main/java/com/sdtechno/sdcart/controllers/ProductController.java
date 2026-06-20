@@ -17,6 +17,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
@@ -51,7 +52,7 @@ public class ProductController {
      */
     @PostMapping(consumes = {"multipart/form-data"})
     //@PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<Map<String, String>> createProduct(@RequestParam ProductControllerCreateProductDto newProduct) {
+    public ResponseEntity<Map<String, String>> createProduct(@ModelAttribute ProductControllerCreateProductDto newProduct) {
 
         try {
         	return productService.saveProduct(newProduct);
@@ -67,7 +68,7 @@ public class ProductController {
     @PutMapping(value = "/update/{id}", consumes = {"multipart/form-data"})
     //@PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Map<String, String>> updateProductById(
-            @PathVariable Long id,@RequestParam ProductControllerUpdateProductDto updateProduct) {
+            @PathVariable Long id,@ModelAttribute ProductControllerUpdateProductDto updateProduct) {
 
         try {
         	return productService.updateProduct(updateProduct, id);
