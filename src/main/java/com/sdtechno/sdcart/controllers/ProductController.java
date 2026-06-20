@@ -50,7 +50,7 @@ public class ProductController {
      * ✅ Create product (Admin only) with image upload
      */
     @PostMapping(consumes = {"multipart/form-data"})
-    @PreAuthorize("hasRole('ADMIN')")
+    //@PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Map<String, String>> createProduct(@RequestParam ProductControllerCreateProductDto newProduct) {
 
         try {
@@ -65,7 +65,7 @@ public class ProductController {
      * ✅ Update product (Admin only) with optional image upload
      */
     @PutMapping(value = "/update/{id}", consumes = {"multipart/form-data"})
-    @PreAuthorize("hasRole('ADMIN')")
+    //@PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Map<String, String>> updateProductById(
             @PathVariable Long id,@RequestParam ProductControllerUpdateProductDto updateProduct) {
 
