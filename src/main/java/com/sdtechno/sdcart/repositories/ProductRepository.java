@@ -1,6 +1,9 @@
 package com.sdtechno.sdcart.repositories;
 
 import com.sdtechno.sdcart.models.Product;
+
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 
@@ -50,4 +53,6 @@ public interface ProductRepository
 
     List<Product> findByBrandIgnoreCaseAndPriceGreaterThan(
             String brand, double price);
+	Page<Product> findByCategoryIgnoreCase(String category, Pageable pageable);
+	Page<Product> findByBrandIgnoreCase(String brand, Pageable pageable);
 }

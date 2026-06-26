@@ -29,7 +29,7 @@ public class AuthController {
     @PostMapping("/register")
     public ResponseEntity<?> register(@RequestBody RegisterRequest request) {
         if (userRepository.findByEmail(request.getEmail()).isPresent()) {
-            return ResponseEntity.badRequest().body("User already exists");
+            return ResponseEntity.badRequest().body(Map.of("message","User already exists"));
         }
 
         User user = new User();
@@ -65,13 +65,13 @@ public class AuthController {
         Optional<User> userOptional = userRepository.findByEmail(loginUser.getEmail());
 
         if (userOptional.isEmpty()) {
-            return ResponseEntity.status(401).body("Invalid email or password");
+            return ResponseEntity.status(401).body(Map.of("message","Invalid email or password"));
         }
 
         User user = userOptional.get();
 
         if (!passwordEncoder.matches(loginUser.getPassword(), user.getPassword())) {
-            return ResponseEntity.status(401).body("Invalid email or password");
+            return ResponseEntity.status(401).body(Map.of("message","Invalid email or password"));
         }
 
         Map<String, Object> claims = new HashMap<>();
